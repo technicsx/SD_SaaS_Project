@@ -12,7 +12,7 @@ DEFAULT_HOURS = 12
 
 def formate_forecast_from_weather_api(request_time, location_name, response, forecast_hours):
     location_data = response.get("locations")[location_name]
-    location_forecast_values = (location_data['values'])[1:forecast_hours]
+    location_forecast_values = (location_data['values'])[1:forecast_hours+1]
 
     weather_resp = {
         "forecast_request_time": request_time,
@@ -45,7 +45,7 @@ def get_forecast_from_weather_api(city_name: str, forecast_start_time: str):
                         "&unitGroup=metric&aggregateHours=1" \
                         "&key=" + cross_vis_api_key + \
                         "&startDateTime=" + forecast_start_time + \
-                        "&contentType=json"
+                        "&timezone=Z&contentType=json"
 
     response = requests.request("GET", url_base + url_service + url_params_extras)
     return response.json()
@@ -87,7 +87,7 @@ def city_weather_endpoint():
     city_name = request_body_json_data.get("location")
     forecast_hours = request_body_json_data.get("hours")
 
-    request_time = dt.datetime.now()
+    request_time = dt.datetime.now(dt.timezone.utc)
 
     forecast_day_start_time_date = date_formatter(request_time, DT_FORMATTING)
 
