@@ -3,8 +3,10 @@ local htmlparser = require("htmlparser")
 local gumbo = require("gumbo")
 local lfs = require("lfs")
 
+-- constants    (╯°□°）╯︵ ┻━┻    (╯°□°）╯︵ ┻━┻    (╯°□°）╯︵ ┻━┻
 local daySecs = 86400
 
+-- checks if folder exists by path
 local function directoryExists(path)
     local attributes = lfs.attributes(path)
     return attributes and attributes.mode == "directory"
@@ -13,22 +15,23 @@ end
 local folderPathParam = arg[1]
 assert(folderPathParam ~= nil and directoryExists(folderPathParam), "Invalid folder is provided")
 
-
+-- parses date string to os.time() format
 local function parseDateTime(dateString)
     local pattern = "(%d+)-(%d+)-(%d+)"
     local year, month, day = dateString:match(pattern)
     return os.time({ year = year, month = month, day = day })
 end
 
+-- checks if date is valid
 local curDateTime = os.time()
 local startDateTime = parseDateTime("2022-02-24")
 local fetchDateTimeEnd = #arg ~= 1 and parseDateTime(arg[2]) or nil
 local fetchDateTimeStart = arg[3] ~= nil and parseDateTime(arg[3]) or parseDateTime("2022-02-24")
-assert(fetchDateTimeEnd == nil or (fetchDateTimeEnd <= curDateTime and fetchDateTimeEnd >= startDateTime))
-assert(fetchDateTimeStart >= startDateTime and (fetchDateTimeEnd == nil or fetchDateTimeStart <= fetchDateTimeEnd))
+assert(fetchDateTimeEnd == nil or (fetchDateTimeEnd <= curDateTime and fetchDateTimeEnd >= startDateTime), "Invalid end date is provided")
+assert(fetchDateTimeStart >= startDateTime and (fetchDateTimeEnd == nil or fetchDateTimeStart <= fetchDateTimeEnd), "Invalid start date is provided")
 
 
-
+-- fetches article by uri
 local function fetchArticle(uri)
     local headers, stream = assert(http_request.new_from_uri(uri):go())
 
@@ -43,6 +46,7 @@ local function fetchArticle(uri)
     return body
 end
 
+-- selects article body from htmlparser
 local function selectArticleBodyByAttribute(body)
     local htmlTreeRoot = htmlparser.parse(body, 2000)
     local divs = htmlTreeRoot:select("[property='content:encoded']")
@@ -54,28 +58,32 @@ local function selectArticleBodyByAttribute(body)
     return parsedBody
 end
 
+-- parses article body and removes unnecessary tags or elements
 local function parse(body)
-    local document = assert(gumbo.parse(body))
+    -- parse html
+    local document = assert(gumbo.parse(body), "Failed to parse html")
 
-
+    -- remove all links
     local aTags = document.links
     for _, element in ipairs(aTags) do
         element:remove()
     end
 
-
+    -- remove all images
     local imgTags = document.images
     for _, element in ipairs(imgTags) do
         element:remove()
     end
 
-
+    -- remove all spans with style="text-decoration: underline;"
     local underlinedSpans = document:getElementsByTagName("span")
-    for _, element in ipairs(underlinedSpans) do
-        element:remove()
+    for _, span in ipairs(underlinedSpans) do
+        if span ~= nil and span:getAttribute("style") == "text-decoration: underline;" then
+            span:remove()
+        end
     end
 
-
+    -- remove all hr tags with align="left" size="1" width="33%" with different behaviour depending on attribute size
     local hrs = document:getElementsByTagName("hr")
     for _, hr in ipairs(hrs) do
         if hr ~= nil and hr:getAttribute("align") == "left" and hr:getAttribute("size") == "1" and hr:getAttribute("width") == "33%" then
@@ -99,7 +107,7 @@ local function parse(body)
 
 
     local ps = document:getElementsByTagName("p")
-
+    -- remove all p tags depending on their attributes or position
     for _, p in ipairs(ps) do
         if p ~= nil and p:getAttribute("align") == "center" and not (p.firstElementChild ~= nil and p.firstElementChild:getAttribute("style") == "font-size: 13.008px;") then
             p:remove()
@@ -131,7 +139,7 @@ local function parse(body)
         end
     end
 
-
+    -- remove all divs that contain "Click" in their outerHTML
     local divs = document:getElementsByTagName("div")
     for _, div in ipairs(divs) do
         local divStr = div.outerHTML
@@ -144,6 +152,7 @@ local function parse(body)
     -- return document:serialize()
 end
 
+-- writes article to folder path
 local function writeToFile(filename, folderPath, filecontent)
     lfs.mkdir(folderPath)
 
@@ -160,6 +169,7 @@ local function writeToFile(filename, folderPath, filecontent)
     end
 end
 
+-- forms isw article uri
 local function formArticleUri(dateTime)
     local date, _, _ = os.date("*t", dateTime)
 
@@ -214,6 +224,7 @@ local function formArticleUri(dateTime)
     return nil
 end
 
+-- main function
 local function run(dateTime, forceExitOnError)
     local date, _, _ = os.date("*t", dateTime)
     local filename = string.format("assessment-%04d-%02d-%02d", date.year, date.month, date.day)
@@ -243,8 +254,9 @@ local function run(dateTime, forceExitOnError)
     writeToFile(filename, folderToWriteTo, stringToWrite)
 end
 
+-- script actions
 if fetchDateTimeEnd ~= nil then
-    assert(fetchDateTimeStart ~= nil and fetchDateTimeEnd ~= nil)
+    assert(fetchDateTimeStart ~= nil and fetchDateTimeEnd ~= nil, "Both start and end dates must be specified")
     for dateTime = fetchDateTimeStart, fetchDateTimeEnd, daySecs do
         run(dateTime, false)
     end
