@@ -1,4 +1,18 @@
-local http_request = require("http.request")
+-- **dependencies installation**
+--
+-- sudo apt -y install build-essential libcurl4-openssl-dev
+--
+-- sudo luarocks install Lua-cURL CURL_INCDIR=/usr/include/x86_64-linux-gnu/
+-- sudo luarocks install htmlparser
+-- sudo luarocks install gumbo
+-- sudo luarocks install luafilesystem
+
+
+-- **usage examples**
+-- lua isw_updating_script.lua ../data 2023-04-01 2022-02-24
+-- lua isw_updating_script.lua ../data
+
+local cURL = require("cURL.safe")
 local htmlparser = require("htmlparser")
 local gumbo = require("gumbo")
 local lfs = require("lfs")
@@ -104,8 +118,6 @@ local function parse(body)
         end
     end
 
-
-
     local ps = document:getElementsByTagName("p")
     -- remove all p tags depending on their attributes or position
     for _, p in ipairs(ps) do
@@ -182,7 +194,7 @@ local function formArticleUri(dateTime)
     ---@diagnostic disable-next-line: param-type-mismatch
     local curDateStringWithoutYear = string.gsub(os.date('%B-%e', dateTime), "%s+", "")
     local formattedDateWithoutYear = string.lower(string.sub(curDateStringWithoutYear, 1, 1)) ..
-        string.sub(curDateStringWithoutYear, 2)
+            string.sub(curDateStringWithoutYear, 2)
 
     -- ...
     if date.year == 2022 then
@@ -232,7 +244,9 @@ local function run(dateTime, forceExitOnError)
     local articleUri = formArticleUri(dateTime)
     if (articleUri == nil) then
         print("Skipping " .. filename .. ': missing article')
-        if forceExitOnError then os.exit(7) end
+        if forceExitOnError then
+            os.exit(7)
+        end
 
         return
     end
@@ -240,7 +254,9 @@ local function run(dateTime, forceExitOnError)
     local rawHTML = fetchArticle(articleUri)
     if (rawHTML == nil) then
         print("Skipping " .. filename .. ': got 404 for article with the given date ')
-        if forceExitOnError then os.exit(7) end
+        if forceExitOnError then
+            os.exit(7)
+        end
 
         return
     end
