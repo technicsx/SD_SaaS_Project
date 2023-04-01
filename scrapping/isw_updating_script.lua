@@ -47,15 +47,22 @@ assert(fetchDateTimeStart >= startDateTime and (fetchDateTimeEnd == nil or fetch
 
 -- fetches article by uri
 local function fetchArticle(uri)
-    local headers, stream = assert(http_request.new_from_uri(uri):go())
+    local c, err = cURL.easy { url = uri }
 
-    local body = assert(stream:get_body_as_string())
-
-    if headers:get ":status" == "404" then
+    -- basic way to collect all data
+    local body = {}
+    c:setopt_writefunction(table.insert, body)
+    -- Perform request
+    local ok, err = c:perform()
+    -- get status it can be pop3/http/smtp/etc
+    local status = c:getinfo_response_code()
+    if status == 404 then
         return nil
-    elseif headers:get ":status" ~= "200" then
-        error("Code: " .. headers:get ":status")
+    elseif status ~= 200 then
+        error("Code: " .. status)
     end
+    -- convert data to string
+    body = table.concat(body)
 
     return body
 end
@@ -160,8 +167,12 @@ local function parse(body)
         end
     end
 
-    return document.body.textContent
-    -- return document:serialize()
+    -- Satellite image
+    -- dot a
+
+    local docContent = document.body.textContent
+    -- removing all :nbsp symbols and
+    return docContent.gsub(docContent, "\194\160", " ")
 end
 
 -- writes article to folder path
