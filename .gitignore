@@ -1,3 +1,5 @@
-/data/**
-!/data/**/
-!/data/**/.gitkeep
+input_data/**/*.csv
+input_data/**/*.txt
+input_data/**/*.json
+input_data/**/*.html
+.env
