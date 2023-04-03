@@ -9,8 +9,8 @@
 
 
 -- **usage examples**
--- lua isw_updating_script.lua ../data 2023-04-01 2022-02-24
--- lua isw_updating_script.lua ../data
+-- time lua ./scrapping/isw_updating_script.lua ./scrapping/results 2023-04-03 2022-02-24
+-- time lua ./scrapping/isw_updating_script.lua ./scrapping/results
 
 local cURL = require("cURL.safe")
 local htmlparser = require("htmlparser")
@@ -41,8 +41,10 @@ local curDateTime = os.time()
 local startDateTime = parseDateTime("2022-02-24")
 local fetchDateTimeEnd = #arg ~= 1 and parseDateTime(arg[2]) or nil
 local fetchDateTimeStart = arg[3] ~= nil and parseDateTime(arg[3]) or parseDateTime("2022-02-24")
-assert(fetchDateTimeEnd == nil or (fetchDateTimeEnd <= curDateTime and fetchDateTimeEnd >= startDateTime), "Invalid end date is provided")
-assert(fetchDateTimeStart >= startDateTime and (fetchDateTimeEnd == nil or fetchDateTimeStart <= fetchDateTimeEnd), "Invalid start date is provided")
+assert(fetchDateTimeEnd == nil or (fetchDateTimeEnd <= curDateTime and fetchDateTimeEnd >= startDateTime),
+    "Invalid end date is provided")
+assert(fetchDateTimeStart >= startDateTime and (fetchDateTimeEnd == nil or fetchDateTimeStart <= fetchDateTimeEnd),
+    "Invalid start date is provided")
 
 
 -- fetches article by uri
@@ -81,32 +83,62 @@ end
 
 -- parses article body and removes unnecessary tags or elements
 local function parse(body)
-    -- parse html
     local document = assert(gumbo.parse(body), "Failed to parse html")
 
-    -- remove all links
-    local aTags = document.links
-    for _, element in ipairs(aTags) do
-        element:remove()
-    end
+    -- all article authors: Kateryna|Stepanenko|Grace|Mappes|George|Layne|Philipson|Angela|Howard|Kagan|Mason|Frederick|Fredrick|Clark|Barros|Riley|Bailey|Nicole|Wolkov|Karolina|Phillipson|Hird
 
-    -- remove all images
-    local imgTags = document.images
-    for _, element in ipairs(imgTags) do
-        element:remove()
-    end
+    local patternForArticleDate = "%a+ %d+,? %d?%d?:?%d?%d?%s*[AaPp]?[Mm]?%s*[Ee][Ss]?[Tt]"
 
-    -- remove all spans with style="text-decoration: underline;"
-    local underlinedSpans = document:getElementsByTagName("span")
-    for _, span in ipairs(underlinedSpans) do
-        if span ~= nil and span:getAttribute("style") == "text-decoration: underline;" then
-            span:remove()
+
+    for i, p in ipairs(document:getElementsByTagName("p")) do
+        if p ~= nil then
+            if p.textContent:match(patternForArticleDate) then
+                local currentNode = p.previousElementSibling
+                while currentNode do
+                    print(currentNode.textContent)
+                    local nextNode = currentNode.previousElementSibling
+                    -- currentNode:remove()
+                    currentNode = nextNode
+                end
+                p:remove()
+            end
+
+
+            if p.innerHTML == '<p style="text-align: left;">&nbsp;</p>' or p.innerHTML:match("%s+dot%s+") then
+                local currentNode = p.nextSibling
+                while currentNode do
+                    local nextNode = currentNode.nextSibling
+                    currentNode:remove()
+                    currentNode = nextNode
+                end
+                p:remove()
+            end
+
+
+            if p.innerHTML:match("Key Takeaways") or p.innerHTML:match("Immediate items to watch") or p.innerHTML:match("Click")
+                or p.innerHTML:match("Note:") or p.innerHTML:match("Satellite image ©") or p.outerHTML:match("<p>%[%d+%]&nbsp;") then
+                p:remove()
+            end
         end
     end
 
-    -- remove all hr tags with align="left" size="1" width="33%" with different behaviour depending on attribute size
-    local hrs = document:getElementsByTagName("hr")
-    for _, hr in ipairs(hrs) do
+
+    for _, strong in ipairs(document:getElementsByTagName("strong")) do
+        if strong ~= nil and strong.innerHTML:match(patternForArticleDate) then
+            local currentNode = strong.parentNode.previousSibling
+            while currentNode do
+                local nextNode = currentNode.previousSibling
+                currentNode:remove()
+                currentNode = nextNode
+            end
+            strong:remove()
+        elseif strong ~= nil and strong.innerHTML:match("to enlarge the map") or strong.innerHTML:match("to see ISW's interactive map") then
+            strong:remove()
+        end
+    end
+
+
+    for _, hr in ipairs(document:getElementsByTagName("hr")) do
         if hr ~= nil and hr:getAttribute("align") == "left" and hr:getAttribute("size") == "1" and hr:getAttribute("width") == "33%" then
             local currentNode = hr.parentNode
             while currentNode do
@@ -125,54 +157,27 @@ local function parse(body)
         end
     end
 
-    local ps = document:getElementsByTagName("p")
-    -- remove all p tags depending on their attributes or position
-    for _, p in ipairs(ps) do
-        if p ~= nil and p:getAttribute("align") == "center" and not (p.firstElementChild ~= nil and p.firstElementChild:getAttribute("style") == "font-size: 13.008px;") then
-            p:remove()
-        end
-
-        if p ~= nil and p.innerHTML == '<p style="text-align: left;">&nbsp;</p>' then
-            local currentNode = p.nextSibling
-            while currentNode do
-                local nextNode = currentNode.nextSibling
-                currentNode:remove()
-                currentNode = nextNode
-            end
-            p:remove()
-        end
-
-        if p ~= nil and p.innerHTML:match("pm ET") then
-            local currentNode = p.previousSibling
-            while currentNode do
-                local nextNode = currentNode.previousSibling
-                currentNode:remove()
-                currentNode = nextNode
-            end
-            p:remove()
-        end
-
-        local pStr = p.innerHTML
-        if p ~= nil and (pStr:match("Key Takeaways") or pStr:match("Immediate items to watch") or pStr:match("Click") or pStr:match("Note:") or p.outerHTML:match("<p>%[%d+%]&nbsp;")) then
-            p:remove()
-        end
+    for _, element in ipairs(document.links) do
+        element:remove()
     end
 
-    -- remove all divs that contain "Click" in their outerHTML
-    local divs = document:getElementsByTagName("div")
-    for _, div in ipairs(divs) do
-        local divStr = div.outerHTML
-        if div ~= nil and (divStr:match("Click")) then
-            div:remove()
-        end
+    for _, element in ipairs(document.images) do
+        element:remove()
     end
 
-    -- Satellite image
-    -- dot a
+    for _, span in ipairs(document:getElementsByTagName("span")) do
+        if span ~= nil and span:getAttribute("style") == "text-decoration: underline;" then
+            span:remove()
+        end
+    end
 
     local docContent = document.body.textContent
-    -- removing all :nbsp symbols and
-    return docContent.gsub(docContent, "\194\160", " ")
+    docContent = docContent.gsub(docContent, "\194\160", " ")
+    docContent = docContent.gsub(docContent, "https?://[^%s]+%s+dot%s+[^%s]+", " ")
+    docContent = docContent.gsub(docContent, "%s+dot%s+[^%s]+", " ")
+    docContent = docContent.gsub(docContent, "Russian objective:", " ")
+    docContent = docContent.gsub(docContent, "Click", " ")
+    return docContent
 end
 
 -- writes article to folder path
@@ -205,7 +210,7 @@ local function formArticleUri(dateTime)
     ---@diagnostic disable-next-line: param-type-mismatch
     local curDateStringWithoutYear = string.gsub(os.date('%B-%e', dateTime), "%s+", "")
     local formattedDateWithoutYear = string.lower(string.sub(curDateStringWithoutYear, 1, 1)) ..
-            string.sub(curDateStringWithoutYear, 2)
+        string.sub(curDateStringWithoutYear, 2)
 
     -- ...
     if date.year == 2022 then
@@ -237,8 +242,8 @@ local function formArticleUri(dateTime)
     elseif date.year == 2023 then
         if date.month == 1 and date.day == 1 then
             return nil
-        elseif date.month == 2 and date.day == 5 then
-            return uriBase .. "/russian-offensive-campaign-update-february-5-2023"
+        elseif (date.month == 2 and date.day == 5) or (date.month == 3 and date.day == 19) then
+            return uriBase .. "/russian-offensive-campaign-update-" .. formattedDateWithYear
         end
 
         return uriBase .. "/russian-offensive-campaign-assessment-" .. formattedDateWithYear

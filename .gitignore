@@ -1,5 +1,5 @@
-input_data/**/*.csv
-input_data/**/*.txt
-input_data/**/*.json
-input_data/**/*.html
+external_data/**/*.csv
+external_data/**/*.txt
+external_data/**/*.json
+external_data/**/*.html
 .env
