@@ -1,5 +1,1 @@
-external_data/**/*.csv
-external_data/**/*.txt
-external_data/**/*.json
-external_data/**/*.html
 .env
