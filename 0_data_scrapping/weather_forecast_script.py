@@ -4,20 +4,24 @@ import requests
 import os
 
 app = Flask(__name__)
-app.config.from_pyfile(os.path.join(".", "app.conf"), silent=False)
+app.config.from_pyfile(os.path.join("..", "app.conf"), silent=False)
 
 DT_FORMATTING = "%Y-%m-%dT%H:%M:%S"
 DEFAULT_HOURS = 12
 
 
-def formate_forecast_from_weather_api(request_time, location_name, response, forecast_hours):
+def formate_forecast_from_weather_api(
+    request_time, location_name, response, forecast_hours
+):
     location_data = response.get("locations")[location_name]
-    location_forecast_values = (location_data['values'])[1:forecast_hours+1]
+    location_forecast_values = (location_data["values"])[1 : forecast_hours + 1]
 
     weather_resp = {
         "forecast_request_time": request_time,
         "forecast_location_name": location_name,
-        "forecast_hourly_" + str(forecast_hours) + "h_from_now": location_forecast_values,
+        "forecast_hourly_"
+        + str(forecast_hours)
+        + "h_from_now": location_forecast_values,
     }
     return weather_resp
 
@@ -41,11 +45,14 @@ def get_forecast_from_weather_api(city_name: str, forecast_start_time: str):
 
     url_base = "https://weather.visualcrossing.com/VisualCrossingWebServices"
     url_service = "/rest/services/weatherdata/forecast"
-    url_params_extras = "?location=" + city_name + \
-                        "&unitGroup=metric&aggregateHours=1" \
-                        "&key=" + cross_vis_api_key + \
-                        "&startDateTime=" + forecast_start_time + \
-                        "&timezone=Z&contentType=json"
+    url_params_extras = (
+        "?location=" + city_name + "&unitGroup=metric&aggregateHours=1"
+        "&key="
+        + cross_vis_api_key
+        + "&startDateTime="
+        + forecast_start_time
+        + "&timezone=Z&contentType=json"
+    )
 
     response = requests.request("GET", url_base + url_service + url_params_extras)
     return response.json()
@@ -91,10 +98,12 @@ def city_weather_endpoint():
 
     forecast_day_start_time_date = date_formatter(request_time, DT_FORMATTING)
 
-    full_hourly_weather_details = get_forecast_from_weather_api(city_name,
-                                                                forecast_day_start_time_date
-                                                                )
+    full_hourly_weather_details = get_forecast_from_weather_api(
+        city_name, forecast_day_start_time_date
+    )
 
-    formatted = formate_forecast_from_weather_api(request_time, city_name, full_hourly_weather_details, forecast_hours)
+    formatted = formate_forecast_from_weather_api(
+        request_time, city_name, full_hourly_weather_details, forecast_hours
+    )
 
     return formatted
