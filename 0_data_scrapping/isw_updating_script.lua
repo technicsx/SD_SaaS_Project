@@ -9,8 +9,8 @@
 
 
 -- **usage examples**
--- time lua ./scrapping/isw_updating_script.lua ./scrapping/results 2023-04-03 2022-02-24
--- time lua ./scrapping/isw_updating_script.lua ./scrapping/results
+-- time lua ./0_data_scrapping/isw_updating_script.lua ./0_data_scrapping/results/isw 2023-04-03 2022-02-24
+-- time lua ./0_data_scrapping/isw_updating_script.lua ./0_data_scrapping/results/isw
 
 local cURL = require("cURL.safe")
 local htmlparser = require("htmlparser")
@@ -52,8 +52,8 @@ local function fetchArticle(uri)
     local c, err = cURL.easy { url = uri }
 
     -- basic way to collect all data
-    local body = {}
-    c:setopt_writefunction(table.insert, body)
+    local bodyTable = {}
+    c:setopt_writefunction(table.insert, bodyTable)
     -- Perform request
     local ok, err = c:perform()
     -- get status it can be pop3/http/smtp/etc
@@ -64,9 +64,7 @@ local function fetchArticle(uri)
         error("Code: " .. status)
     end
     -- convert data to string
-    body = table.concat(body)
-
-    return body
+    return table.concat(bodyTable)
 end
 
 -- selects article body from htmlparser
@@ -89,18 +87,18 @@ local function parse(body)
 
     local patternForArticleDate = "%a+ %d+,? %d?%d?:?%d?%d?%s*[AaPp]?[Mm]?%s*[Ee][Ss]?[Tt]"
 
-
-    for i, p in ipairs(document:getElementsByTagName("p")) do
+    local isArticleDateMatched = false
+    for _, p in ipairs(document:getElementsByTagName("p")) do
         if p ~= nil then
-            if p.textContent:match(patternForArticleDate) then
-                local currentNode = p.previousElementSibling
+            if (not isArticleDateMatched) and p.textContent:match(patternForArticleDate) then
+                local currentNode = p.previousSibling
                 while currentNode do
-                    print(currentNode.textContent)
-                    local nextNode = currentNode.previousElementSibling
-                    -- currentNode:remove()
+                    local nextNode = currentNode.previousSibling
+                    currentNode:remove()
                     currentNode = nextNode
                 end
                 p:remove()
+                isArticleDateMatched = true
             end
 
 
