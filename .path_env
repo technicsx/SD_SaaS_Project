@@ -5,3 +5,4 @@ WEATHER_DATA_FILE="external_data/hourly_weather/all_weather_by_hour.csv"
 
 ISW_SCRAPPING_FODLER="0_data_scrapping/results/isw"
 ISW_TF_IDF_RESULT="2_data_preparation/results/tfidf.csv"
+HOLIDAYS_DATA_FOLDER="holidays_feature/csv"
