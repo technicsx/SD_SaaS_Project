@@ -2,20 +2,18 @@ import nltk
 import string
 import re
 from num2words import num2words
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 
 nltk.download("stopwords")
 nltk.download("punkt")
 nltk.download("wordnet")
 nltk.download("omw-1.4")
 
+stop_punctuation = string.punctuation
+stop_words = set(nltk.corpus.stopwords.words("english"))
+
 
 def to_lower_case(text):
     return "".join([i.lower() for i in text])
-
-
-stop_punctuation = string.punctuation
 
 
 def remove_punctuation(text):
@@ -39,7 +37,6 @@ def tokenize_text(text):
 
 
 def remove_stop_words(tokens):
-    stop_words = set(nltk.corpus.stopwords.words("english"))
     # avoid_stop_words = {"not", "n't", "no"}
     # stop_words = stop_words - avoid_stop_words
     return [i for i in tokens if i not in stop_words]
