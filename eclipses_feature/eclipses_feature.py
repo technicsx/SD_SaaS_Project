@@ -11,11 +11,11 @@ LUNAR_ECLIPSES_FILENAME = ECLIPSES_DATA_FOLDER + "/lunar_eclipses_flow_{}.csv"
 SOLAR_ECLIPSES_FILENAME = ECLIPSES_DATA_FOLDER + "/solar_eclipses_flow_{}.csv"
 
 
-def add_lunar_eclipses(dataset, day_datetime_column='day_datetime', column_name_1='lunar_eclipse', column_name_2='phased_mooned_eclipse'):
+def add_lunar_eclipses(dataset, day_datetime_column='day_datetime', column_name_1='lunar_eclipse', column_name_2='moonphased_eclipse'):
     add_astrology(dataset, day_datetime_column, column_name_1, column_name_2, LUNAR_ECLIPSES_FILENAME, [2022, 2023])
 
 
-def add_solar_eclipses(dataset, day_datetime_column='day_datetime', column_name_1='solar_eclipse', column_name_2='phased_mooned_eclipse'):
+def add_solar_eclipses(dataset, day_datetime_column='day_datetime', column_name_1='solar_eclipse', column_name_2='moonphased_eclipse'):
     add_astrology(dataset, day_datetime_column, column_name_1, column_name_2, SOLAR_ECLIPSES_FILENAME, [2022, 2023])
 
 
