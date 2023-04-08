@@ -12,12 +12,20 @@ WEATHER_DATA_FILE = os.path.join(projectPath, REL_WEATHER_DATA_FILE)
 
 
 HOLIDAYS_DATA_FOLDER = os.path.join(projectPath, REL_HOLIDAYS_DATA_FOLDER)
+ECLIPSES_DATA_FOLDER = os.path.join(projectPath, REL_ECLIPSES_DATA_FOLDER)
 ISW_SCRAPPING_FOLDER = os.path.join(projectPath, REL_ISW_SCRAPPING_FOLDER)
+print(HOLIDAYS_DATA_FOLDER)
+print(HOLIDAYS_DATA_FOLDER)
+print(HOLIDAYS_DATA_FOLDER)
+print(HOLIDAYS_DATA_FOLDER)
 
-
-RUS_HOLIDAYS_FILENAME_F = os.path.join(
-    projectPath, HOLIDAYS_DATA_FOLDER + "/russian_holidays_{}.csv"
-)
+RUS_HOLIDAYS_FILENAME_F = os.path.join(HOLIDAYS_DATA_FOLDER, "russian_holidays_{}.csv")
 UKRAINIAN_HOLIDAYS_FILENAME_F = os.path.join(
-    projectPath, HOLIDAYS_DATA_FOLDER + "/ukrainian_holidays_{}.csv"
+    HOLIDAYS_DATA_FOLDER, "ukrainian_holidays_{}.csv"
+)
+LUNAR_ECLIPSES_FILENAME_F = os.path.join(
+    ECLIPSES_DATA_FOLDER, "lunar_eclipses_flow_{}.csv"
+)
+SOLAR_ECLIPSES_FILENAME_F = os.path.join(
+    ECLIPSES_DATA_FOLDER, "solar_eclipses_flow_{}.csv"
 )
