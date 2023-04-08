@@ -86,9 +86,12 @@ df_isw.to_csv(f"{OUTPUT_FOLDER}/{ISW_OUTPUT_DATA_FILE}", sep=";", index=False)
 
 # %% cell_id="cfe8d26df3a34c3b8c600d45c8b714d2" deepnote_cell_type="code"
 # Add holidays data to df_isw
-add_ukrainian_holidays(df_isw, day_datetime_column='report_date', column_name='ukrainian_holiday')
-add_russian_holidays(df_isw, day_datetime_column='report_date', column_name='russian_holiday')
-# df_isw.loc[df_isw['ukrainian_holiday'] == 1]
+add_ukrainian_holidays(
+    df_isw, day_datetime_column="report_date", column_name="ukrainian_holiday"
+)
+add_russian_holidays(
+    df_isw, day_datetime_column="report_date", column_name="russian_holiday"
+)
 
 # %% [markdown] cell_id="ced25f3d8b2c4d96b86451c7bff747a6" deepnote_cell_type="markdown"
 # ## prepare events data
@@ -103,10 +106,6 @@ df_events_v2["event_time"] = np.nan
 # %% cell_id="43771d041c58424eb692f73230f4b791" deepnote_cell_type="code"
 df_events_v2.head(5)
 df_events_v2.shape
-
-# %% cell_id="616debc8773049ceb42e4d4bd662954b" deepnote_cell_type="code"
-# df_events_v2["start_time"] = df_events_v2.apply(lambda x: x["start"] if not isNaN(x["start"]) else x["event_time"] , axis=1)
-# df_events_v2["end_time"] = df_events_v2.apply(lambda x: x["end"] if not isNaN(x["end"]) else x["event_time"], axis=1)
 
 # %% cell_id="613e468d21b7436dbe18a526bcf8d296" deepnote_cell_type="code"
 df_events_v2["start_time"] = pd.to_datetime(df_events_v2["start"])
@@ -129,16 +128,12 @@ df_events_v2["end_hour"] = df_events_v2.apply(
 # %% cell_id="c4638f2955c74e41995e3ddaf348c408" deepnote_cell_type="code"
 df_events_v2["day_date"] = df_events_v2["start_time"].dt.date
 
-df_events_v2.head(10)
-
 df_events_v2["start_hour_datetimeEpoch"] = df_events_v2["start_hour"].apply(
     lambda x: int(x.timestamp()) if not isNaN(x) else None
 )
 df_events_v2["end_hour_datetimeEpoch"] = df_events_v2["end_hour"].apply(
     lambda x: int(x.timestamp()) if not isNaN(x) else None
 )
-
-# df_events_v2.head(10)
 
 # %% [markdown] cell_id="60915435755f423ba7455e694efcff97" deepnote_cell_type="markdown"
 # ## prepare weather
@@ -191,6 +186,9 @@ weather_exclude = [
 # %% cell_id="02dffa78339b409eba1906019ae553fe" deepnote_cell_type="code"
 df_weather_v2 = df_weather.drop(weather_exclude, axis=1)
 
+# %%
+del df_weather
+
 # %% cell_id="bd136660563e43478b9d934a89d5da1b" deepnote_cell_type="code"
 df_weather_v2["city"] = df_weather_v2["city_resolvedAddress"].apply(
     lambda x: x.split(",")[0]
@@ -230,12 +228,11 @@ df_weather_reg.shape
 # %% cell_id="95f76614fa894bd5aa924679adfdc682" deepnote_cell_type="code"
 df_weather_v2.shape
 
+# %%
+del df_weather_v2
+
 # %% [markdown] cell_id="553fbeced23c40a48a3504d00b1d70e9" deepnote_cell_type="markdown"
 # ### Merging weather and events
-
-# %% cell_id="87bc6f45d1e94e918ac17de085309d75" deepnote_cell_type="code"
-# df_events_v2["start_hour_datetimeEpoch"] = df_events_v2['start_hour'].apply(lambda x: int(x.strftime('%s'))  if not isNaN(x) else 0)
-# df_events_v2["end_hour_datetimeEpoch"] = df_events_v2['end_hour'].apply(lambda x: int(x.strftime('%s'))  if not isNaN(x) else 0)
 
 # %% cell_id="40055894945e4707977c52ac7def16b6" deepnote_cell_type="code"
 df_events_v2.dtypes
@@ -247,9 +244,6 @@ df_events_v2.shape
 df_events_v2.head(10)
 
 # %% cell_id="f563ac4a436740d1a1e69e78e4a4b3a2" deepnote_cell_type="code"
-# df_events_v2_sample = df_events_v2.sample(10)
-# df_events_v2_sample.shape
-
 events_dict = df_events_v2.to_dict("records")
 events_by_hour = []
 
@@ -268,6 +262,9 @@ df_events_v3 = pd.DataFrame.from_dict(events_by_hour)
 df_events_v3["hour_level_event_datetimeEpoch"] = df_events_v3[
     "hour_level_event_time"
 ].apply(lambda x: int(x.timestamp()) if not isNaN(x) else None)
+
+# %%
+del df_events_v2
 
 # %% cell_id="f9e6d8dcd0c24da882366d0919c71b95" deepnote_cell_type="code"
 df_events_v3.shape
@@ -289,6 +286,9 @@ df_weather_reg.head(10)
 df_events_v4 = df_events_v3.copy().add_prefix("event_")
 df_events_v4.head(10)
 
+# %%
+del df_events_v3
+
 # %% cell_id="c196ef5769f14944b471c1e9c8182dbd" deepnote_cell_type="code"
 df_weather_v4 = df_weather_reg.merge(
     df_events_v4,
@@ -297,55 +297,20 @@ df_weather_v4 = df_weather_reg.merge(
     right_on=["event_region_title", "event_hour_level_event_datetimeEpoch"],
 )
 
+# %%
+del df_weather_reg
+
 # %% cell_id="db4146abf636459a9947e6ae334ec013" deepnote_cell_type="code"
 # Alarm data
-print(df_weather_v4.loc[~ isNaN(df_weather_v4['event_start'])].shape)
-print(df_weather_v4.loc[isNaN(df_weather_v4['event_start'])].shape)
-df_weather_v4['is_alarm'] = df_weather_v4.apply(lambda x: 0 if isNaN(x['event_start']) else 1, axis=1)
-no_alarms = df_weather_v4.loc[df_weather_v4['is_alarm'] == 0].size
-alarms = df_weather_v4.loc[df_weather_v4['is_alarm'] == 1].size
-print(f"Alarm chane: {alarms / df_weather_v4.size}")
-print(f"No alarm: {no_alarms / df_weather_v4.size}")
-
-# %% cell_id="d432c747179c4a37bc49d000336fa478" deepnote_cell_type="code"
-add_lunar_eclipses(df_weather_v4, day_datetime_column="day_datetime")
-add_solar_eclipses(df_weather_v4, day_datetime_column="day_datetime")
-
-# %% cell_id="7f28cf0beccc4ea2b0c7929652981950" deepnote_cell_type="code"
-# Alarm data
-print(df_weather_v4.loc[~ isNaN(df_weather_v4['event_start'])].shape)
-print(df_weather_v4.loc[isNaN(df_weather_v4['event_start'])].shape)
-df_weather_v4['is_alarm'] = df_weather_v4.apply(lambda x: 0 if isNaN(x['event_start']) else 1, axis=1)
-no_alarms = df_weather_v4.loc[df_weather_v4['is_alarm'] == 0].size
-alarms = df_weather_v4.loc[df_weather_v4['is_alarm'] == 1].size
-print(f"Alarm chane: {alarms / df_weather_v4.size}")
-print(f"No alarm: {no_alarms / df_weather_v4.size}")
-# df_weather_v4.sample(5)
-
-# %% cell_id="599b7a5d8544490788c58e2aa783df62" deepnote_cell_type="code"
-# Merge isw data to df_weather_v4
-df_weather_v5 = pd.merge(
-    df_weather_v4,
-    df_isw[
-        [
-            "Keywords",
-            "report_date",
-            "date_tomorrow_datetime",
-            "ukrainian_holiday",
-            "russian_holiday",
-        ]
-    ],
-    left_on="day_datetime",
-    right_on="report_date",
+print(df_weather_v4.loc[~isNaN(df_weather_v4["event_start"])].shape)
+print(df_weather_v4.loc[isNaN(df_weather_v4["event_start"])].shape)
+df_weather_v4["is_alarm"] = df_weather_v4.apply(
+    lambda x: 0 if isNaN(x["event_start"]) else 1, axis=1
 )
-
-print(df_weather_v5.shape)
-
-df_weather_v6 = None
-df_weather_v5[df_weather_v5["event_start_time"] > pd.to_datetime(0)].head(5)
-
-# %% cell_id="dd3ec300bbc44b72ae1ef018237f8e50" deepnote_cell_type="code"
-# df_weather_v5.to_csv(f"./results/df_v5.csv")
+no_alarms = df_weather_v4.loc[df_weather_v4["is_alarm"] == 0].size
+alarms = df_weather_v4.loc[df_weather_v4["is_alarm"] == 1].size
+print(f"Alarm chane: {alarms / df_weather_v4.size}")
+print(f"No alarm: {no_alarms / df_weather_v4.size}")
 
 # %% [markdown] cell_id="6a2458f26b8140e589b3d2bb3cadd515" deepnote_cell_type="markdown"
 # ## Feature engineering
@@ -356,14 +321,17 @@ df_weather_v5[df_weather_v5["event_start_time"] > pd.to_datetime(0)].head(5)
 # %% [markdown] cell_id="698ce5e96db24b2fa7a53e4f40fe617d" deepnote_cell_type="markdown"
 # Use DuckDB for analytics as running with Pandas and Python taking too long.
 
+# %%
+df_weather_v5 = None
+
 # %% cell_id="3c0032ffd14144caab2b1bed8db9ab1b" deepnote_cell_type="code" language="sql"
-# df_weather_v6 << select df.*, coalesce(alarm_count.events_last_24_hrs, 0) as events_last_24_hrs
-# from df_weather_v5 df
+# df_weather_v5 << select df.*, coalesce(alarm_count.events_last_24_hrs, 0) as events_last_24_hrs
+# from df_weather_v4 df
 #          left join (select out.region_id,
 #                             out.hour_datetimeEpoch,
 #                             count(inn.event_start_time) as events_last_24_hrs
-#                      from df_weather_v5 out
-#                               left join df_weather_v5 inn
+#                      from df_weather_v4 out
+#                               left join df_weather_v4 inn
 #                                          on out.region_id = inn.region_id
 #                      where
 #                        inn.event_start_time::timestamp
@@ -374,31 +342,92 @@ df_weather_v5[df_weather_v5["event_start_time"] > pd.to_datetime(0)].head(5)
 #         on df.region_id = alarm_count.region_id and df.hour_datetimeEpoch = alarm_count.hour_datetimeEpoch;
 
 # %% cell_id="f2996c9e0cf84c1595b02ae9db365503" deepnote_cell_type="code"
-print(df_weather_v6.shape)
-
-df_weather_v6[['city_resolvedAddress', 'region_id', 'hour_datetimeEpoch', 'events_last_24_hrs']].tail(5)
-
-# %% cell_id="6818c8ea9fdf4c40990e193cc1605126" deepnote_cell_type="code"
-df_weather_v6.tail(1)
+df_weather_v5[
+    ["city_resolvedAddress", "region_id", "hour_datetimeEpoch", "events_last_24_hrs"]
+].tail(5)
 
 # %% cell_id="7a80f3a8324f4f759fe717196aa8b9e3" deepnote_cell_type="code"
 # Add day of week name
-df_weather_v6["day_of_week"] = df_weather_v6["day_datetime"].apply(
+df_weather_v5["day_of_week"] = df_weather_v5["day_datetime"].apply(
     lambda date: pd.to_datetime(date).day_name()
 )
 
-df_weather_v6[["day_datetime", "day_of_week"]].head(10)
+# %%
+df_weather_v5[["day_datetime", "day_of_week"]].head(10)
+
+# %% [markdown]
+# Adding lunar and solar
+
+# %%
+df_weather_v6 = None
+
+# %% language="sql"
+# df_weather_v6 << select df.*, coalesce(alarmed_count.alarmed_regions_count, 0) as alarmed_regions_count
+# from df_weather_v5 df
+#          left join (select out.day_datetimeEpoch,
+#                                             out.hour_datetimeEpoch,
+#                                             count(*) as alarmed_regions_count
+#                                     from df_weather_v5 out left join df_weather_v5 inn
+#                                          on out.day_datetimeEpoch = inn.day_datetimeEpoch and out.hour_datetimeEpoch = inn.hour_datetimeEpoch
+#                                     where inn.is_alarm = 1 and inn.hour_datetimeEpoch
+#                                                                between out.event_start_hour_datetimeEpoch and out.event_start_hour_datetimeEpoch
+#                                     group by out.day_datetimeEpoch, out.hour_datetimeEpoch) as alarmed_count
+#         on df.day_datetimeEpoch = alarmed_count.day_datetimeEpoch and df.hour_datetimeEpoch = alarmed_count.hour_datetimeEpoch;
+
+# %%
+add_lunar_eclipses(df_weather_v6, day_datetime_column="day_datetime")
+add_solar_eclipses(df_weather_v6, day_datetime_column="day_datetime")
+
+# %%
+df_weather_v6.head(2)
+
+# %% [markdown]
+# ### MERGING
+
+# %%
+df_isw_tmp = df_isw.copy()
+df_isw_tmp["Keywords"] = df_isw_tmp["Keywords"].apply(lambda x: dict(eval(x)))
+df_isw_2 = pd.DataFrame(df_isw_tmp["Keywords"].values.tolist(), index=df_isw_tmp.index)
+df_isw_2["report_date"] = df_isw["report_date"]
+df_isw_2["date_tomorrow_datetime"] = df_isw["date_tomorrow_datetime"]
+df_isw_2["ukrainian_holiday"] = df_isw["ukrainian_holiday"]
+df_isw_2["russian_holiday"] = df_isw["russian_holiday"]
+
+df_isw_2 = df_isw_2.fillna(0)
+# df_isw_2.iloc[:5, 0:1000]
+# df_isw_2["date_tomorrow_datetime"].head(5)
+# df_isw_2["report_date"].head(5)
+
+# %%
+del df_isw
+del df_events
+del df_weather_v4
+del df_weather_v5
+
+# %%
+df_weather_v7 = pd.merge(
+    df_weather_v6,
+    df_isw_2,
+    left_on="day_datetime",
+    right_on="date_tomorrow_datetime",
+)
+
+print(df_weather_v7.shape)
+
+# %%
+del df_isw_2
+del df_weather_v6
 
 # %% [markdown] cell_id="8e65380583fa44668f1d4fec361333cb" deepnote_cell_type="markdown"
 # ### Handle categorical data
 
 # %% cell_id="ae8168b0e88f49d5b5c356e147aa16d9" deepnote_cell_type="code"
 # Encode days of week into one hot encoding for linear regression
-df_weather_v6 = pd.get_dummies(
-    df_weather_v6, columns=["day_of_week"], prefix=["day_of_week"]
+df_weather_v7 = pd.get_dummies(
+    df_weather_v7, columns=["day_of_week"], prefix=["day_of_week"]
 )
 
-df_weather_v6[
+df_weather_v7[
     [
         "day_datetime",
         "day_of_week_Monday",
@@ -412,30 +441,12 @@ df_weather_v6[
 ].head(10)
 
 # %% cell_id="69bd2164749343b29989f247551186a3" deepnote_cell_type="code"
-df_weather_v6["hour_conditions"] = pd.Categorical(df_weather_v6['hour_conditions'])
-df_weather_v6["hour_conditions_code"] = df_weather_v6["hour_conditions"].cat.codes
-df_weather_v6[["hour_conditions", "hour_conditions_code"]].head(5)
-
-# %% cell_id="0bf3440e4f6d408cad0f2db500e44350" deepnote_cell_type="code"
-df_weather_v7 = None
-
-# %% cell_id="5e36606968b14eda94a77afed0a068ea" deepnote_cell_type="code" language="sql"
-# df_weather_v7 << select df.*, coalesce(alarmed_count.alarmed_regions_count, 0) as alarmed_regions_count
-# from df_weather_v6 df
-#          left join (select out.day_datetimeEpoch,
-#                                             out.hour_datetimeEpoch,
-#                                             count(*) as alarmed_regions_count
-#                                     from df_weather_v6 out left join df_weather_v6 inn
-#                                          on out.day_datetimeEpoch = inn.day_datetimeEpoch and out.hour_datetimeEpoch = inn.hour_datetimeEpoch
-#                                     where inn.is_alarm = 1 and inn.hour_datetimeEpoch
-#                                                                between out.event_start_hour_datetimeEpoch and out.event_start_hour_datetimeEpoch
-#                                     group by out.day_datetimeEpoch, out.hour_datetimeEpoch) as alarmed_count
-#         on df.day_datetimeEpoch = alarmed_count.day_datetimeEpoch and df.hour_datetimeEpoch = alarmed_count.hour_datetimeEpoch;
+df_weather_v7["hour_conditions"] = pd.Categorical(df_weather_v7["hour_conditions"])
+df_weather_v7["hour_conditions_code"] = df_weather_v7["hour_conditions"].cat.codes
+df_weather_v7[["hour_conditions", "hour_conditions_code"]].head(5)
 
 # %% [markdown] cell_id="69c38d2760aa4198b6a49ea956f06e52" deepnote_cell_type="markdown"
 # ### Save final merged dataframe
 
 # %% cell_id="8b906aa46c70419b8c5a2aeb4be211e0" deepnote_cell_type="code"
-df_weather_v7.to_csv(
-    f"{OUTPUT_FOLDER}/df_weather_v7.csv", sep=";", index=False
-)
+df_weather_v7.to_csv(f"{OUTPUT_FOLDER}/df_weather_v7.csv", sep=";", index=False)
