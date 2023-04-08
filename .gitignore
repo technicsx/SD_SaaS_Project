@@ -2,3 +2,4 @@
 app.conf
 venv
 .idea
+__pycache__
