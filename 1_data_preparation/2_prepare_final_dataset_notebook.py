@@ -480,7 +480,7 @@ print(df_weather_v6.shape)
 df_weather_v6.head(5)
 
 # %%
-df_weather_v6.drop(["day_datetime"], axis=1, inplace=True)
+# df_weather_v6.drop(["day_datetime"], axis=1, inplace=True)
 
 # %%
 df_weather_v6.head(1)
@@ -524,21 +524,40 @@ df_weather_v6["day_datetimeEpoch"].head(15)
 
 # %%
 # drop from isw_v2
-df_isw_v2.drop(["report_date", "date_tomorrow_datetime"], axis=1, inplace=True)
+# df_isw_v2.drop(["report_date", "date_tomorrow_datetime"], axis=1, inplace=True)
+df_isw_v2.drop(["report_date"], axis=1, inplace=True)
+
+# %%
+df_weather_v6.shape
 
 # %% [markdown]
 # ### Final merge
 
 # %%
-df_isw_v2["date_tomorrow_epoch"].head(15)
+# df_isw_v2["date_tomorrow_epoch"].head(15)
+print(df_weather_v6.shape)
+print(df_isw_v2.shape)
 
 # %%
 df_fin = pd.merge(
     df_weather_v6,
     df_isw_v2,
-    left_on="day_datetimeEpoch",
-    right_on="date_tomorrow_epoch",
+    left_on="day_datetime",
+    right_on="date_tomorrow_datetime",
 )
+# missing data
+# df_fin_2 = pd.merge(
+#     df_weather_v6,
+#     df_isw_v2,
+#     left_on="day_datetimeEpoch",
+#     right_on="date_tomorrow_epoch",
+# )
+df_fin.drop(["day_datetime", "date_tomorrow_datetime"], axis=1, inplace=True)
+# df_fin_2.drop(["day_datetime", "date_tomorrow_datetime"], axis=1, inplace=True)
+
+# %%
+print(df_fin.shape)
+# print(df_fin_2.shape)
 
 # %%
 # df_fin nan to 0
