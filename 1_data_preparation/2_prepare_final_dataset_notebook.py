@@ -495,9 +495,6 @@ df_weather_v6 = df_weather_v6.select_dtypes(exclude=['object'])
 
 # %%
 # drop columns
-df_weather_v6.drop(
-    ["event_intersection_alarm_id"], axis=1, inplace=True
-)
 # TODO: revert back dropped columns
 df_weather_v6.drop(
     [
@@ -505,7 +502,14 @@ df_weather_v6.drop(
         "event_end_time",
         "event_start_hour",
         "event_end_hour",
-        "event_hour_level_event_time"
+        "event_hour_level_event_time",
+
+        "event_intersection_alarm_id",
+        "event_start_hour_datetimeEpoch",
+        "event_end_hour_datetimeEpoch",
+        "event_hour_level_event_datetimeEpoch",
+
+        "event_all_region"
     ],
     axis=1,
     inplace=True,
