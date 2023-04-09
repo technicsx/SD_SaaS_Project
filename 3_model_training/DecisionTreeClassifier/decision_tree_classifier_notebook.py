@@ -1,3 +1,17 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+
 # %%
 import numpy as np
 import pandas as pd
@@ -7,7 +21,7 @@ from paths_full import DATA_PREP_RESULTS_FOLDER
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
 from matplotlib import pyplot
 
 
@@ -24,8 +38,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # %%
-# gradient boosting for classification in scikit-learn
-model = GradientBoostingClassifier()
+# decision tree classifier for classification in scikit-learn
+model = DecisionTreeClassifier()
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 print(confusion_matrix(y_test, y_pred))
@@ -49,5 +63,3 @@ pyplot.title("Top 20 important features")
 pyplot.show()
 
 # %%
-# check columns index
-df_final.iloc[0:5, 30:35]
