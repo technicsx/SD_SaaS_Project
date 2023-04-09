@@ -22,6 +22,8 @@ duckdb-engine = "^0.7.0"
 jupysql = "^0.7.0"
 jupytext = "^1.14.5"
 matplotlib = "^3.7.1"
+nltk = "^3.8.1"
+num2words = "^0.5.12"
 
 
 [build-system]
