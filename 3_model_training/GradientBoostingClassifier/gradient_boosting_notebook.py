@@ -40,7 +40,7 @@ print(model.get_params())
 
 # %%
 randm_src = RandomizedSearchCV(estimator=model, param_distributions=parameters,
-                               cv=2, n_iter=2, n_jobs=-1)
+                               cv=2, n_iter=10, n_jobs=-1)
 randm_src.fit(X_train, y_train)
 
 print(" Results from Random Search ")
