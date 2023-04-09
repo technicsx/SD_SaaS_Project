@@ -116,19 +116,15 @@ filenames = df["Name"]
 dates = df["Date"]
 
 print("Create vectors")
-tfidf = TfidfVectorizer(smooth_idf=True, use_idf=True)
+tfidf = TfidfVectorizer(smooth_idf=True, use_idf=True, max_features=100)
 vectors = tfidf.fit_transform(df["Tokens"])
-
-# store content
-with open("results/tfidf.pkl", "wb") as handle:
-    pickle.dump(tfidf, handle)
-
 
 feature_names = tfidf.get_feature_names_out()
 dense = vectors.todense()
 denselist = dense.tolist()
 df = pd.DataFrame(denselist, columns=feature_names)
 dictionaries = df.to_dict(orient="records")
+
 
 res = __builtins__.zip(filenames, dates, dictionaries)
 res_df = pd.DataFrame(res, columns=["Name", "Date", "Keywords"])
