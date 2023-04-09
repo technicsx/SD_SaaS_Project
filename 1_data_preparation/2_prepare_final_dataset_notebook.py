@@ -75,7 +75,6 @@ df_isw.drop(columns=["Date", "Name"], inplace=True)
 df_isw.head(1)
 
 # %% cell_id="3b3a59a75bb2437c86abb073be054278" deepnote_cell_type="code"
-
 df_isw["date_tomorrow_datetime"] = df_isw["report_date"].apply(
     lambda x: x + datetime.timedelta(days=1)
 )
@@ -442,25 +441,46 @@ df_weather_v5.head(1)
 # ### Final merge preparations
 
 # %%
-df_weather_v6 = pd.get_dummies(
-    df_weather_v5, columns=["day_of_week"], prefix=["day_of_week"]
-)
-
-df_weather_v6[
-    [
-        "day_datetime",
-        "day_of_week_Monday",
-        "day_of_week_Tuesday",
-        "day_of_week_Wednesday",
-        "day_of_week_Thursday",
-        "day_of_week_Friday",
-        "day_of_week_Saturday",
-        "day_of_week_Sunday",
-    ]
-].head(10)
+df_weather_v5.shape
 
 # %%
-df_weather_v6.drop(["day_datetime"], axis=1, inplace=True)
+from typing import Tuple
+
+# Defining the function for dummy creation
+def create_dummy(df: pd.DataFrame, dummy_var_list: list) -> Tuple:
+    """
+    Creates dummy variables for the variables in dummy_var_list
+    Returns a tuple of the following
+        * df - The dataframe with the dummy variables
+        * dummy_var_list - The list of dummy variables created
+    """
+    # Placeholder for the dummy variables
+    added_features = []
+    for var in dummy_var_list:
+        dummy = pd.get_dummies(df[var], prefix=var, drop_first=False)
+
+        # Adding the new features to list
+        added_features.extend(dummy.columns)
+
+        # Adding the dummy variables to the dataframe
+        df = pd.concat([df, dummy], axis=1)
+        df.drop(var, axis=1, inplace=True)
+
+    # Returning the dataframe
+    return df, added_features
+
+
+# %%
+df_weather_v6, categorical_features = create_dummy(df_weather_v5.copy(), ["day_of_week", "hour_conditions"])
+print(categorical_features)
+print(len(categorical_features))
+
+# %%
+print(df_weather_v6.shape)
+df_weather_v6.head(5)
+
+# %%
+# df_weather_v6.drop(["day_datetime"], axis=1, inplace=True)
 
 # %%
 df_weather_v6.head(1)
@@ -470,20 +490,11 @@ df_weather_v6.head(1)
 # df_weather_v6.fillna(0, inplace=True)
 
 # %%
-# Handle categorical data
-df_weather_v6["hour_conditions"] = pd.Categorical(df_weather_v6["hour_conditions"])
-df_weather_v6["hour_conditions_code"] = df_weather_v6["hour_conditions"].cat.codes
-df_weather_v6[["hour_conditions", "hour_conditions_code"]].head(5)
-
-# %%
 # drop all columns that are of type
 df_weather_v6 = df_weather_v6.select_dtypes(exclude=['object'])
 
 # %%
-# drop column "hour_conditions"
-df_weather_v6.drop(
-    ["hour_conditions", "event_intersection_alarm_id"], axis=1, inplace=True
-)
+# drop columns
 # TODO: revert back dropped columns
 df_weather_v6.drop(
     [
@@ -491,7 +502,14 @@ df_weather_v6.drop(
         "event_end_time",
         "event_start_hour",
         "event_end_hour",
-        "event_hour_level_event_time"
+        "event_hour_level_event_time",
+
+        "event_intersection_alarm_id",
+        "event_start_hour_datetimeEpoch",
+        "event_end_hour_datetimeEpoch",
+        "event_hour_level_event_datetimeEpoch",
+
+        "event_all_region"
     ],
     axis=1,
     inplace=True,
@@ -506,21 +524,40 @@ df_weather_v6["day_datetimeEpoch"].head(15)
 
 # %%
 # drop from isw_v2
-df_isw_v2.drop(["report_date", "date_tomorrow_datetime"], axis=1, inplace=True)
+# df_isw_v2.drop(["report_date", "date_tomorrow_datetime"], axis=1, inplace=True)
+df_isw_v2.drop(["report_date"], axis=1, inplace=True)
+
+# %%
+df_weather_v6.shape
 
 # %% [markdown]
 # ### Final merge
 
 # %%
-df_isw_v2["date_tomorrow_epoch"].head(15)
+# df_isw_v2["date_tomorrow_epoch"].head(15)
+print(df_weather_v6.shape)
+print(df_isw_v2.shape)
 
 # %%
 df_fin = pd.merge(
     df_weather_v6,
     df_isw_v2,
-    left_on="day_datetimeEpoch",
-    right_on="date_tomorrow_epoch",
+    left_on="day_datetime",
+    right_on="date_tomorrow_datetime",
 )
+# missing data
+# df_fin_2 = pd.merge(
+#     df_weather_v6,
+#     df_isw_v2,
+#     left_on="day_datetimeEpoch",
+#     right_on="date_tomorrow_epoch",
+# )
+df_fin.drop(["day_datetime", "date_tomorrow_datetime"], axis=1, inplace=True)
+# df_fin_2.drop(["day_datetime", "date_tomorrow_datetime"], axis=1, inplace=True)
+
+# %%
+print(df_fin.shape)
+# print(df_fin_2.shape)
 
 # %%
 # df_fin nan to 0

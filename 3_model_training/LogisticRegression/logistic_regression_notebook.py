@@ -25,45 +25,13 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+from matplotlib import pyplot
 
-csv_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_fin.pkl")
+csv_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_weather_v7.pkl")
 df_final = pd.read_pickle(csv_path)
 
 # %%
 df_final.shape
-
-# %%
-# Fill NaN values
-# df_final[["event_all_region"]] = df_final[["event_all_region"]].fillna(value=0)
-
-# %%
-# df_final.shape
-
-# %%
-# X = np.array(
-#     df_final[
-#         [
-#             "region_id",
-#             "event_all_region",
-#             "day_datetimeEpoch",
-#             "hour_datetimeEpoch",
-#             "ukrainian_holiday",
-#             "russian_holiday",
-#             "hour_temp",
-#             "hour_snow",
-#             "hour_visibility",
-#             "hour_conditions_code",
-#             "lunar_eclipse",
-#             "solar_eclipse",
-#             "moonphased_eclipse",
-#             "alarmed_regions_count",
-#         ]
-#     ]
-# )
-# df_final except is_alarm
-# X = np.array(df_final.drop(["is_alarm"], axis=1))
-
-# y = np.array(df_final["is_alarm"])
 
 # %%
 # Splitting the data into training and testing data
@@ -80,24 +48,23 @@ regr.fit(X_train, y_train)
 print(regr.score(X_test, y_test))
 
 # %%
-
-logreg_liblinear = LogisticRegression(
+model = LogisticRegression(
     solver="liblinear", class_weight="balanced", random_state=0
 )
 
-logreg_liblinear.fit(X_train, y_train)
-pred_test = logreg_liblinear.predict(X_test)
+model.fit(X_train, y_train)
+pred_test = model.predict(X_test)
 print(pred_test)
 
-print(logreg_liblinear.classes_)
-print(logreg_liblinear.intercept_)
-print(logreg_liblinear.coef_)
+print(model.classes_)
+print(model.intercept_)
+print(model.coef_)
 
-print(logreg_liblinear.score(X_test, y_test))
-print(logreg_liblinear.score(X_train, y_train))
+print(model.score(X_test, y_test))
+print(model.score(X_train, y_train))
 
 
-y_pred = logreg_liblinear.predict(X_test)
+y_pred = model.predict(X_test)
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
 print(classification_report(y_test, y_pred))
@@ -113,3 +80,26 @@ for i in range(2):
     for j in range(2):
         ax.text(j, i, cm[i, j], ha="center", va="center", color="red")
 plt.show()
+
+# %%
+# get importance
+importance = model.coef_[0]
+# summarize feature importance
+for i,v in enumerate(importance):
+	print('Feature: %0d, Score: %.5f' % (i,v))
+# plot feature importance
+pyplot.bar([x for x in range(len(importance))], importance)
+pyplot.show()
+
+# %%
+feat_importances = pd.Series(importance, index=df_final.drop(["is_alarm"], axis=1).columns)
+feat_importances.nlargest(20).plot(kind='barh')
+pyplot.title("Top 20 important features")
+pyplot.show()
+
+# %%
+feat_importances.nsmallest(20).plot(kind='barh')
+pyplot.title("Top 20 negative features")
+pyplot.show()
+
+# %%
