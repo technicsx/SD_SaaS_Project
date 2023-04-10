@@ -5,4 +5,7 @@ venv
 **/__pycache__
 **/*.py[cod]
 *.ipynb
-!2_data_visualization/visualization.ipynb
+!2_data_visualization/visualization_isw.ipynb
+!2_data_visualization/visualization_merged.ipynb
+!2_data_visualization/visualization_alarms.ipynb
+!2_data_visualization/visualization_weather.ipynb
