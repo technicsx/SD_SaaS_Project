@@ -42,7 +42,7 @@ pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 # %% cell_id="ac6a0c9dc63949df851a22bff81b8535" deepnote_cell_type="code"
-REPORTS_DATA_FILE = "./results/tfidf.csv"
+REPORTS_DATA_FILE = "./results/tfidf_small.csv"
 
 OUTPUT_FOLDER = "results"
 ISW_OUTPUT_DATA_FILE = "all_isw.csv"
@@ -127,12 +127,15 @@ df_alarms = pd.read_csv(f"{ALARMS_DATA_FILE}", sep=";")
 df_alarms.head(1)
 
 # %% cell_id="ce00bb16d2e94d128d28f352bde22cbb" deepnote_cell_type="code"
-df_alarms.drop(["id", "region_id"], axis=1, inplace=True)
+df_alarms.drop(["region_id"], axis=1, inplace=True)
+df_alarms.rename(columns={'id': 'event_id'}, inplace = True)
 df_alarms["event_time"] = np.nan
+
+# %%
+df_alarms.shape
 
 # %% cell_id="43771d041c58424eb692f73230f4b791" deepnote_cell_type="code"
 df_alarms.head(5)
-df_alarms.shape
 
 # %% cell_id="613e468d21b7436dbe18a526bcf8d296" deepnote_cell_type="code"
 df_alarms["start_time"] = pd.to_datetime(df_alarms["start"])
@@ -181,8 +184,8 @@ df_alarms_v2.drop(
         "event_hour",
         "clean_end",
         # keep in mind) we will use this column later
-        "all_region",
-        "intersection_alarm_id",
+        # "all_region",
+        # "intersection_alarm_id",
     ],
     inplace=True,
 )
@@ -295,9 +298,6 @@ del df_weather
 # %% cell_id="40055894945e4707977c52ac7def16b6" deepnote_cell_type="code"
 df_alarms_v2.dtypes
 
-# %% cell_id="ca638e87e4ad4d4fb75a1833e5ae7f4c" deepnote_cell_type="code"
-df_alarms_v2.shape
-
 # %% cell_id="6d40bd1596004f1abef8ccf066f59e9d" deepnote_cell_type="code"
 df_alarms_v2.head(10)
 
@@ -341,6 +341,13 @@ df_alarms_v4 = df_alarms_v3.copy().add_prefix("event_")
 df_alarms_v4.head(1)
 
 # %%
+df_alarms_v4.dtypes
+
+
+# %%
+df_alarms_v2.shape
+
+# %%
 del df_alarms_v3
 
 # %% cell_id="c196ef5769f14944b471c1e9c8182dbd" deepnote_cell_type="code"
@@ -366,6 +373,8 @@ alarms = df_weather_v3.loc[df_weather_v3["is_alarm"] == 1].size
 print(f"Alarm chane: {alarms / df_weather_v3.size}")
 print(f"No alarm: {no_alarms / df_weather_v3.size}")
 
+# %%
+
 # %% [markdown] cell_id="ad9519e8c60a4645ad9d5159748f1dd6" deepnote_cell_type="markdown"
 # ### Number of alarms for this region during the last 24 hours
 
@@ -377,7 +386,7 @@ df_weather_v4 = None
 # from df_weather_v3 df
 #          left join (select out.region_id,
 #                             out.hour_datetimeEpoch,
-#                             count(inn.event_start_time) as events_last_24_hrs
+#                             count(distinct(inn.event_event_id)) as events_last_24_hrs
 #                      from df_weather_v3 out
 #                               left join df_weather_v3 inn
 #                                          on out.region_id = inn.region_id
@@ -406,7 +415,9 @@ df_weather_v4["day_of_week"] = df_weather_v4["day_datetime"].apply(
 df_weather_v4[["day_datetime", "day_of_week"]].tail(15)
 
 # %%
-df_weather_v4.head(1)
+df_weather_v4.head(25)
+
+# %%
 
 # %% [markdown]
 # ### Adding lunar and solar features
@@ -417,15 +428,12 @@ df_weather_v5 = None
 # %% language="sql"
 # df_weather_v5 << select df.*, coalesce(alarmed_count.alarmed_regions_count, 0) as alarmed_regions_count
 # from df_weather_v4 df
-#          left join (select out.day_datetimeEpoch,
-#                                             out.hour_datetimeEpoch,
-#                                             count(*) as alarmed_regions_count
-#                                     from df_weather_v4 out left join df_weather_v4 inn
+#          left join (select out.day_datetimeEpoch, out.hour_datetimeEpoch, count(distinct(out.region_id)) as alarmed_regions_count
+#                     from df_weather_v4 out left join df_weather_v4 inn
 #                                          on out.day_datetimeEpoch = inn.day_datetimeEpoch and out.hour_datetimeEpoch = inn.hour_datetimeEpoch
-#                                     where inn.is_alarm = 1 and inn.hour_datetimeEpoch
-#                                                                between out.event_start_hour_datetimeEpoch and out.event_start_hour_datetimeEpoch
-#                                     group by out.day_datetimeEpoch, out.hour_datetimeEpoch) as alarmed_count
-#         on df.day_datetimeEpoch = alarmed_count.day_datetimeEpoch and df.hour_datetimeEpoch = alarmed_count.hour_datetimeEpoch;
+#                     where inn.is_alarm = 1 and inn.hour_datetimeEpoch between out.event_start_hour_datetimeEpoch and out.event_start_hour_datetimeEpoch
+#                     group by out.day_datetimeEpoch, out.hour_datetimeEpoch) as alarmed_count
+#         on df.day_datetimeEpoch = alarmed_count.day_datetimeEpoch and df.hour_datetimeEpoch = alarmed_count.hour_datetimeEpoch
 
 # %%
 del df_weather_v4
@@ -564,10 +572,23 @@ print(df_fin.shape)
 df_fin.fillna(0, inplace=True)
 
 # %%
-df_fin.head(15)
+df_fin[['events_last_24_hrs', 'alarmed_regions_count']].describe()
+
+ # %%
+ df_fin.dtypes
+df_fin.fillna(0, inplace=True)
+df_fin['event_event_id'] = df_fin['event_event_id'].astype('int64')
 
 # %% [markdown] cell_id="69c38d2760aa4198b6a49ea956f06e52" deepnote_cell_type="markdown"
 # ### Save final merged dataframe
 
+# %%
+df_fin.head(15)
+
+# %%
+df_fin.drop(['event_event_id'], axis=1, inplace=True)
+
 # %% cell_id="8b906aa46c70419b8c5a2aeb4be211e0" deepnote_cell_type="code"
-df_fin.to_pickle(f"{OUTPUT_FOLDER}/df_weather_v7.pkl")
+df_fin.to_pickle(f"{OUTPUT_FOLDER}/df_merged_fin.pkl")
+
+# %%

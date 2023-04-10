@@ -13,29 +13,21 @@
 # ---
 
 # %%
-import numpy as np
-import pandas as pd
-import os
-import matplotlib.pyplot as plt
-
-from paths_full import DATA_PREP_RESULTS_FOLDER
-
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from matplotlib import pyplot
+from paths_full import *
+from sklearn.feature_selection import SelectKBest, f_classif
+from utils.model_confusion_matrix_out import *
+from utils.model_features_info_out import *
+from utils.timeseries_training_testing import *
 
-csv_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_weather_v7.pkl")
+# %%
+csv_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_weather_v7_v3.pkl")
 df_final = pd.read_pickle(csv_path)
 
 # %%
-df_final.shape
-
-# %%
-# Splitting the data into training and testing data
-X_train, X_test, y_train, y_test = train_test_split(
+# Splitting the data into ordinary 75/25 training and testing data
+X_train_ordinary, X_test_ordinary, y_train_ordinary, y_test_ordinary = train_test_split(
     df_final.drop(["is_alarm"], axis=1).values,
     df_final["is_alarm"].values,
     test_size=0.25,
@@ -43,63 +35,37 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # %%
-regr = LinearRegression()
-regr.fit(X_train, y_train)
-print(regr.score(X_test, y_test))
+# selector = SelectKBest(f_classif, k=10)
+# X_train_new = selector.fit_transform(X_train_ordinary, y_train_ordinary)
+# X_test_new = selector.transform(X_test_ordinary)
 
 # %%
-model = LogisticRegression(
-    solver="liblinear", class_weight="balanced", random_state=0
-)
+# Fit a logistic regression model with L1 regularization
+logistic_regression_1 = LogisticRegression(penalty='l1',solver='liblinear')
+logistic_regression_1.fit(X_train_ordinary, y_train_ordinary)
 
-model.fit(X_train, y_train)
-pred_test = model.predict(X_test)
-print(pred_test)
+print("Accuracy 75/25 train_test_split:", logistic_regression_1.score(X_test_ordinary, y_test_ordinary))
 
-print(model.classes_)
-print(model.intercept_)
-print(model.coef_)
-
-print(model.score(X_test, y_test))
-print(model.score(X_train, y_train))
-
-
-y_pred = model.predict(X_test)
-cm = confusion_matrix(y_test, y_pred)
-print(cm)
-print(classification_report(y_test, y_pred))
+importance_1 = logistic_regression_1.coef_[0]
+y_pred_1 = logistic_regression_1.predict(X_test_ordinary)
 
 # %%
-fig, ax = plt.subplots(figsize=(8, 8))
-ax.imshow(cm)
-ax.grid(False)
-ax.xaxis.set(ticks=(0, 1), ticklabels=("Predicted 0s", "Predicted 1s"))
-ax.yaxis.set(ticks=(0, 1), ticklabels=("Actual 0s", "Actual 1s"))
-ax.set_ylim(1.5, -0.5)
-for i in range(2):
-    for j in range(2):
-        ax.text(j, i, cm[i, j], ha="center", va="center", color="red")
-plt.show()
+output_model_confusion_matrix(logistic_regression_1, y_test_ordinary, y_pred_1)
 
 # %%
-# get importance
-importance = model.coef_[0]
-# summarize feature importance
-for i,v in enumerate(importance):
-	print('Feature: %0d, Score: %.5f' % (i,v))
-# plot feature importance
-pyplot.bar([x for x in range(len(importance))], importance)
-pyplot.show()
+output_overall_features_importance_diagram(importance_1)
 
 # %%
-feat_importances = pd.Series(importance, index=df_final.drop(["is_alarm"], axis=1).columns)
-feat_importances.nlargest(20).plot(kind='barh')
-pyplot.title("Top 20 important features")
-pyplot.show()
+# Fit a logistic regression model with L1 regularization
+logistic_regression_2 = LogisticRegression(penalty='l1',solver='liblinear')
+timeseries_training_testing(df_final,logistic_regression_2, 2)
+importance_2 = logistic_regression_2.coef_[0]
 
 # %%
-feat_importances.nsmallest(20).plot(kind='barh')
-pyplot.title("Top 20 negative features")
-pyplot.show()
+y_pred_2 = logistic_regression_2.predict(X_test_ordinary)
 
 # %%
+output_model_confusion_matrix(logistic_regression_2, y_test_ordinary, y_pred_2)
+
+# %% [markdown]
+#
