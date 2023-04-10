@@ -20,10 +20,7 @@
 
 # %% cell_id="8e138bae7b244bdea0d767dd645b62d8" deepnote_app_coordinates={"h": 25, "w": 12, "x": 0, "y": 37} deepnote_app_is_output_hidden=true deepnote_cell_type="code" deepnote_to_be_reexecuted=false execution_millis=2920 execution_start=1680019070283 source_hash="ec535853"
 import pandas as pd
-import pickle
-import os
-from sklearn.feature_extraction.text import TfidfVectorizer
-
+from utils.isw_tfidf_out import *
 from text_preprocessing import (do_preprocessing)
 
 # %% [markdown] cell_id="3adde034474b4e01b133850f0598de42" deepnote_app_coordinates={"h": 5, "w": 12, "x": 0, "y": 117} deepnote_cell_type="text-cell-h3" formattedRanges=[] is_collapsed=false
@@ -37,6 +34,9 @@ df = pd.DataFrame(columns=["Name", "Date", "Text"])
 df_list = []
 
 print("Reading folder contents")
+
+print(ISW_SCRAPPING_FOLDER)
+
 for root, dirs, files in os.walk(ISW_SCRAPPING_FOLDER):
     for filename in files:
         if filename.endswith(".txt"):
@@ -66,7 +66,7 @@ filteredDf = df["Text"].apply(lambda d: " ".join(do_preprocessing(d)))
 # print("Top 30 frequenty used words: ")
 # print(all_words.most_common(30))
 
-frequent_words = {
+frequent_words_all = {
     "russian",
     "force",
     "forces",
@@ -107,33 +107,38 @@ frequent_words = {
     "november",
     "december",
 }
-filteredDf = filteredDf.apply(
-    lambda d: " ".join(w for w in d.split() if w not in frequent_words)
-)
-df["Tokens"] = filteredDf
 
-filenames = df["Name"]
-dates = df["Date"]
+frequent_words_months = {
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+}
 
-print("Create vectors")
-tfidf = TfidfVectorizer(smooth_idf=True, use_idf=True, max_features=100)
-vectors = tfidf.fit_transform(df["Tokens"])
+frequent_words_mil = {
+    "russian",
+    "force",
+    "forces",
+    "ukrainian",
+    "ukraine",
+    "oblast",
+    "military",
+    "reported",
+    "effort",
+    "likely",
+    "claimed",
+    "russia",
+}
 
-feature_names = tfidf.get_feature_names_out()
-dense = vectors.todense()
-denselist = dense.tolist()
-df = pd.DataFrame(denselist, columns=feature_names)
-dictionaries = df.to_dict(orient="records")
+isw_tfidf_output(filteredDf, frequent_words_mil, __builtins__, df, features_count=100)
 
 
-res = __builtins__.zip(filenames, dates, dictionaries)
-res_df = pd.DataFrame(res, columns=["Name", "Date", "Keywords"])
-res_df["Keywords"] = res_df["Keywords"].apply(
-    lambda d: {k: v for k, v in d.items() if v > 0}
-)
-res_df["Keywords"] = res_df["Keywords"].apply(
-    lambda d: dict(sorted(d.items(), key=lambda item: item[1], reverse=True))
-)
-
-res_df.to_csv("results/tfidf.csv", index=False)
-print("Successfully written to .csv")
+# %%
