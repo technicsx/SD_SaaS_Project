@@ -395,6 +395,13 @@ df_weather_v4[
 ].tail(5)
 
 df_weather_v4.drop(["city_resolvedAddress"], axis=1, inplace=True)
+df_weather_v4.drop(["region_id"], axis=1, inplace=True)
+
+# %% [markdown]
+#
+
+# %%
+# df_weather_v4[["city", "city_resolvedAddress", "region_id"]].head(5)
 
 # %% cell_id="7a80f3a8324f4f759fe717196aa8b9e3" deepnote_cell_type="code"
 # Add day of week name
@@ -471,7 +478,7 @@ def create_dummy(df: pd.DataFrame, dummy_var_list: list) -> Tuple:
 
 
 # %%
-df_weather_v6, categorical_features = create_dummy(df_weather_v5.copy(), ["day_of_week", "hour_conditions"])
+df_weather_v6, categorical_features = create_dummy(df_weather_v5.copy(), ["day_of_week", "hour_conditions", "city"])
 print(categorical_features)
 print(len(categorical_features))
 
