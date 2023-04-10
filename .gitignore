@@ -1,5 +1,11 @@
-input_data/**/*.csv
-input_data/**/*.txt
-input_data/**/*.json
-input_data/**/*.html
 .env
+app.conf
+venv
+.idea
+**/__pycache__
+**/*.py[cod]
+*.ipynb
+!2_data_visualization/visualization_isw.ipynb
+!2_data_visualization/visualization_merged.ipynb
+!2_data_visualization/visualization_alarms.ipynb
+!2_data_visualization/visualization_weather.ipynb

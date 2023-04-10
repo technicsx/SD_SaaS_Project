@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "julialang.language-julia",
+        "ms-python.black-formatter",
+        "ms-toolsai.jupyter",
+        "sumneko.lua",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "njqdev.vscode-python-typehint",
+        "kevinrose.vsc-python-indent",
+        "cstrap.python-snippets",
+        "mechatroner.rainbow-csv"
+    ]
+}
