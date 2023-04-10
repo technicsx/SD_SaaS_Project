@@ -1,6 +1,7 @@
 # %%
 import numpy as np
 import pandas as pd
+import pickle
 import os
 
 from paths_full import DATA_PREP_RESULTS_FOLDER
@@ -12,7 +13,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from matplotlib import pyplot
 
 
-pickle_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_weather_v7.pkl")
+pickle_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_weather_v7_city.pkl")
 df_final = pd.read_pickle(pickle_path)
 
 # %%
@@ -87,25 +88,30 @@ print("\n The best parameters across ALL searched params:\n", rf_random.best_par
 
 # %%
 # tuned
-clf_tuned = RandomForestClassifier(bootstrap=False, max_depth=90, min_samples_leaf=4,
+model_tuned = RandomForestClassifier(bootstrap=False, max_depth=90, min_samples_leaf=4,
                        min_samples_split=10, n_estimators=600)
-clf_tuned.fit(X_train, y_train)
+model_tuned.fit(X_train, y_train)
 
-print(clf_tuned.score(X_test, y_test))
+print(model_tuned.score(X_test, y_test))
 
 # Predict the labels for the test set
-y_pred = clf_tuned.predict(X_test)
+y_pred = model_tuned.predict(X_test)
 
 # Calculate the confusion matrix
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
 disp = ConfusionMatrixDisplay(
-    confusion_matrix=cm, display_labels=clf_tuned.classes_
+    confusion_matrix=cm, display_labels=model_tuned.classes_
 )
 disp.plot()
 # 0.9133622819106061
 # [[27899   808]
 #  [ 2524  7228]]
+
+# city update
+# 0.9148183780129489
+# [[27858   849]
+#  [ 2427  7325]]
 
 # %%
 # default
@@ -130,7 +136,7 @@ disp.plot()
 
 # %%
 # get importance
-importance = clf_tuned.feature_importances_
+importance = model_tuned.feature_importances_
 # summarize feature importance
 for i,v in enumerate(importance):
  print('Feature: %0d, Score: %.5f' % (i,v))
@@ -139,9 +145,12 @@ pyplot.bar([x for x in range(len(importance))], importance)
 pyplot.show()
 
 # %%
-feat_importances = pd.Series(clf_tuned.feature_importances_, index=df_final.columns)
+feat_importances = pd.Series(model_tuned.feature_importances_, index=df_final.columns)
 feat_importances.nlargest(20).plot(kind='barh')
 pyplot.title("Top 20 important features")
 pyplot.show()
 
 # %%
+output_folder = "../results"
+filename = '8__random_forrest__v1'
+pickle.dump(model_tuned, open(f"{output_folder}/{filename}.pkl", 'wb'))

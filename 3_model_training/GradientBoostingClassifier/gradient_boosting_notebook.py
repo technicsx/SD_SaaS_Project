@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import pickle
 from matplotlib import pyplot
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import confusion_matrix
@@ -102,7 +103,13 @@ pyplot.title("Top 20 important features")
 pyplot.show()
 
 # %%
-# check columns index
-df_final.iloc[0:5, 30:35]
+# save the model to disk
+output_folder = "../results"
+filename = '8__gradient_boosting__v1'
+pickle.dump(model_tuned, open(f"{output_folder}/{filename}.pkl", 'wb'))
 
 # %%
+# load the model from disk
+loaded_model = pickle.load(open(f"{output_folder}/{filename}.pkl", 'rb'))
+result = loaded_model.score(X_test, y_test)
+print(result)

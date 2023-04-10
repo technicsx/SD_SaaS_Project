@@ -15,6 +15,7 @@
 # %%
 import numpy as np
 import pandas as pd
+import pickle
 import os
 
 from paths_full import DATA_PREP_RESULTS_FOLDER
@@ -26,7 +27,7 @@ from matplotlib import pyplot
 from sklearn.model_selection import GridSearchCV
 
 
-pickle_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_weather_v7.pkl")
+pickle_path = os.path.join(DATA_PREP_RESULTS_FOLDER, "df_weather_v7_city.pkl")
 df_final = pd.read_pickle(pickle_path)
 
 # %%
@@ -125,3 +126,7 @@ pyplot.title("Top 20 important features")
 pyplot.show()
 
 # %%
+# save the model to disk
+output_folder = "../results"
+filename = '8__decision_tree__v1'
+pickle.dump(model_tuned, open(f"{output_folder}/{filename}.pkl", 'wb'))
