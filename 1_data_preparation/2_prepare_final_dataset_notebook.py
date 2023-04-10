@@ -42,7 +42,7 @@ pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 # %% cell_id="ac6a0c9dc63949df851a22bff81b8535" deepnote_cell_type="code"
-REPORTS_DATA_FILE = "./results/tfidf_small.csv"
+REPORTS_DATA_FILE = "./results/tfidf_100.csv"
 
 OUTPUT_FOLDER = "results"
 ISW_OUTPUT_DATA_FILE = "all_isw.csv"
@@ -479,7 +479,7 @@ def create_dummy(df: pd.DataFrame, dummy_var_list: list) -> Tuple:
 
 
 # %%
-df_weather_v6, categorical_features = create_dummy(df_weather_v5.copy(), ["day_of_week", "hour_conditions"])
+df_weather_v6, categorical_features = create_dummy(df_weather_v5.copy(), ["day_of_week", "hour_conditions", "city"])
 print(categorical_features)
 print(len(categorical_features))
 
@@ -574,8 +574,8 @@ df_fin.fillna(0, inplace=True)
 # %%
 df_fin[['events_last_24_hrs', 'alarmed_regions_count']].describe()
 
- # %%
- df_fin.dtypes
+# %%
+df_fin.dtypes
 df_fin.fillna(0, inplace=True)
 df_fin['event_event_id'] = df_fin['event_event_id'].astype('int64')
 
@@ -586,7 +586,7 @@ df_fin['event_event_id'] = df_fin['event_event_id'].astype('int64')
 df_fin.head(15)
 
 # %%
-df_fin.drop(['event_event_id'], axis=1, inplace=True)
+df_fin.drop(['event_event_id', 'region_id'], axis=1, inplace=True)
 
 # %% cell_id="8b906aa46c70419b8c5a2aeb4be211e0" deepnote_cell_type="code"
 df_fin.to_pickle(f"{OUTPUT_FOLDER}/df_merged_fin.pkl")
