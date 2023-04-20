@@ -9,7 +9,7 @@
 
 
 -- **usage examples**
--- time lua ./0_data_scrapping/isw_updating_script.lua ./0_data_scrapping/results/isw 2023-04-03 2022-02-24
+-- time lua ./0_data_scrapping/isw_updating_script.lua ./0_data_scrapping/results/isw 2023-04-20 2022-02-24
 -- time lua ./0_data_scrapping/isw_updating_script.lua ./0_data_scrapping/results/isw
 
 local cURL = require("cURL.safe")
