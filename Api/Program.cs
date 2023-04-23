@@ -1,5 +1,8 @@
 using Api.Data;
 using Api.Services;
+using AspNetCore.Authentication.ApiKey;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -13,19 +16,54 @@ services.AddHttpClient<ILocationService, LocationService>(client =>
 services.AddScoped<IPredictionService, PredictionService>();
 
 services.Configure<AuthConfig>(builder.Configuration.GetSection("Auth"));
-services.AddSingleton<ApiKeyAuthorizationFilter>();
-services.AddSingleton<IApiKeyValidator, ApiKeyValidator>();
+services.AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
+    .AddApiKeyInHeaderOrQueryParams<ApiKeyProvider>(options =>
+    {
+        options.Realm = "Alarms Web API";
+        options.KeyName = "X-API-KEY";
+    });
+services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddAuthenticationSchemes(ApiKeyDefaults.AuthenticationScheme)
+        .Build();
+});
 
 services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
+services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Auth-Header", new OpenApiSecurityScheme
+    {
+        Description = "Please provide your API key",
+        In = ParameterLocation.Header,
+        Name = "X-API-Key",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = ApiKeyDefaults.AuthenticationScheme
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {  new OpenApiSecurityScheme
+        {
+            Name = "X-API-Key",
+            In = ParameterLocation.Header,
+            Reference = new OpenApiReference
+            {
+                Id = "Auth-Header",
+                Type = ReferenceType.SecurityScheme
+            }
+        }, Array.Empty<string>() }
+    });
+});
 
 var app = builder.Build();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapGet("/", () => "Hello World!");
-
-var api = app.MapGroup("/api")
-    .AddEndpointFilter<ApiKeyAuthorizationFilter>();
-
+var api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("prediction",
     async ([AsParameters] QueryParams query, ILocationService locationService, IPredictionService predictionService) =>
     {
