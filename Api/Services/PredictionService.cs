@@ -19,11 +19,12 @@ namespace Api.Services
 
         public async Task<IList<Prediction>> GetPredictions(int regionId, DateTime dateHour, int take = 12)
         {
-            var lastHour = dateHour + TimeSpan.FromHours(take);
+            var firstHour = dateHour.RoundToFloorHour();
+            var lastHour = firstHour + TimeSpan.FromHours(take);
 
             return await _db.Predictions
                 .Where(r => r.RegionId == regionId
-                            && r.DateHour >= dateHour && r.DateHour < lastHour)
+                            && r.DateHour >= firstHour && r.DateHour < lastHour)
                 .ToListAsync();
         }
     }
