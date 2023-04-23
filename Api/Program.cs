@@ -11,6 +11,11 @@ services.AddHttpClient<ILocationService, LocationService>(client =>
     client.BaseAddress = new Uri("http://api.positionstack.com/v1/", UriKind.Absolute);
 });
 services.AddScoped<IPredictionService, PredictionService>();
+
+services.Configure<AuthConfig>(builder.Configuration.GetSection("Auth"));
+services.AddSingleton<ApiKeyAuthorizationFilter>();
+services.AddSingleton<IApiKeyValidator, ApiKeyValidator>();
+
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
@@ -18,7 +23,10 @@ var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/api/prediction",
+var api = app.MapGroup("/api")
+    .AddEndpointFilter<ApiKeyAuthorizationFilter>();
+
+api.MapGet("prediction",
     async ([AsParameters] QueryParams query, ILocationService locationService, IPredictionService predictionService) =>
     {
         var regionId = query switch
