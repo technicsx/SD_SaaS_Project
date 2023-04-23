@@ -1,4 +1,5 @@
 *.db*
+.env
 
 ### VisualStudio template
 ## Ignore Visual Studio temporary files, build results, and
