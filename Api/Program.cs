@@ -1,8 +1,13 @@
 using Api.Data;
 using Api.Services;
+using AspNetCore.Authentication.ApiKey;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
+
+#region DI
 
 services.AddSqlite<DataContext>(builder.Configuration.GetConnectionString("SQLite"));
 services.Configure<PositionStackConfig>(builder.Configuration.GetSection("PositionStack"));
@@ -11,26 +16,92 @@ services.AddHttpClient<ILocationService, LocationService>(client =>
     client.BaseAddress = new Uri("http://api.positionstack.com/v1/", UriKind.Absolute);
 });
 services.AddScoped<IPredictionService, PredictionService>();
+
+services.Configure<AuthConfig>(builder.Configuration.GetSection("Auth"));
+services.AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
+    .AddApiKeyInHeaderOrQueryParams<ApiKeyProvider>(options =>
+    {
+        options.Realm = "Alarms Web API";
+        options.KeyName = "X-API-KEY";
+    });
+services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddAuthenticationSchemes(ApiKeyDefaults.AuthenticationScheme)
+        .Build();
+});
+
+services.AddCors(options =>
+{
+    options.AddDefaultPolicy(cors => cors
+        .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>())
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials());
+});
+
 services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
+services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Auth-Header", new OpenApiSecurityScheme
+    {
+        Description = "Please provide your API key",
+        In = ParameterLocation.Header,
+        Name = "X-API-Key",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = ApiKeyDefaults.AuthenticationScheme
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Name = "X-API-Key",
+                In = ParameterLocation.Header,
+                Reference = new OpenApiReference
+                {
+                    Id = "Auth-Header",
+                    Type = ReferenceType.SecurityScheme
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+#endregion
+
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapGet("/api/prediction",
+#region Routes
+
+var api = app.MapGroup("/api").RequireAuthorization();
+
+api.MapGet("prediction",
     async ([AsParameters] QueryParams query, ILocationService locationService, IPredictionService predictionService) =>
     {
-        var regionId = query switch
+        int? regionId = query switch
         {
             { RegionId: { } id } => id,
             { Name: { } name } => await locationService.GetRegionId(name),
             { Lat: { } lat, Lon: { } lon } => await locationService.GetRegionId(lat, lon),
-            _ => throw new BadHttpRequestException("Please provide region id, location name or coordinates.")
+            _ => null
         };
 
-        return await predictionService.GetPredictions(regionId, DateTime.UtcNow);
+        return await predictionService.GetAlarmInfo(regionId, DateTime.UtcNow);
     });
+
+#endregion
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -39,9 +110,6 @@ using (var scope = app.Services.CreateScope())
     var context = scopeServices.GetRequiredService<DataContext>();
     await context.Database.EnsureCreatedAsync();
 }
-
-app.UseSwagger();
-app.UseSwaggerUI();
 
 app.Run();
 

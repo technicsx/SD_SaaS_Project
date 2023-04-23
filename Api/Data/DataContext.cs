@@ -22,9 +22,9 @@ namespace Api.Data
         private IEnumerable<Prediction> GetTestData()
         {
             var now = DateTime.UtcNow;
-            var nowRounded = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, 0, now.Kind);
+            var nowRounded = now.RoundToFloorHour();
 
-            for (int regionId = 0; regionId <= 24; regionId++)
+            for (int regionId = 1; regionId <= 25; regionId++)
             {
                 for (int hour = 0; hour < 12; hour++)
                 {
