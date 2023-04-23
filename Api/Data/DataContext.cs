@@ -24,7 +24,7 @@ namespace Api.Data
             var now = DateTime.UtcNow;
             var nowRounded = now.RoundToFloorHour();
 
-            for (int regionId = 0; regionId <= 24; regionId++)
+            for (int regionId = 1; regionId <= 25; regionId++)
             {
                 for (int hour = 0; hour < 12; hour++)
                 {

@@ -76,15 +76,15 @@ var api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("prediction",
     async ([AsParameters] QueryParams query, ILocationService locationService, IPredictionService predictionService) =>
     {
-        var regionId = query switch
+        int? regionId = query switch
         {
             { RegionId: { } id } => id,
             { Name: { } name } => await locationService.GetRegionId(name),
             { Lat: { } lat, Lon: { } lon } => await locationService.GetRegionId(lat, lon),
-            _ => throw new BadHttpRequestException("Please provide region id, location name or coordinates.")
+            _ => null
         };
 
-        return await predictionService.GetPredictions(regionId, DateTime.UtcNow);
+        return await predictionService.GetAlarmInfo(regionId, DateTime.UtcNow);
     });
 
 #endregion
