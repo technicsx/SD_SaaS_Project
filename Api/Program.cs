@@ -32,6 +32,15 @@ services.AddAuthorization(options =>
         .Build();
 });
 
+services.AddCors(options =>
+{
+    options.AddDefaultPolicy(cors => cors
+        .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>())
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials());
+});
+
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen(c =>
 {
@@ -46,16 +55,19 @@ services.AddSwaggerGen(c =>
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {  new OpenApiSecurityScheme
         {
-            Name = "X-API-Key",
-            In = ParameterLocation.Header,
-            Reference = new OpenApiReference
+            new OpenApiSecurityScheme
             {
-                Id = "Auth-Header",
-                Type = ReferenceType.SecurityScheme
-            }
-        }, Array.Empty<string>() }
+                Name = "X-API-Key",
+                In = ParameterLocation.Header,
+                Reference = new OpenApiReference
+                {
+                    Id = "Auth-Header",
+                    Type = ReferenceType.SecurityScheme
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
@@ -64,12 +76,11 @@ services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
 #region Routes
-
-app.MapGet("/", () => "Hello World!");
 
 var api = app.MapGroup("/api").RequireAuthorization();
 
