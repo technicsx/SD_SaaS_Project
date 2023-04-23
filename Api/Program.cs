@@ -11,6 +11,8 @@ services.AddHttpClient<ILocationService, LocationService>(client =>
     client.BaseAddress = new Uri("http://api.positionstack.com/v1/", UriKind.Absolute);
 });
 services.AddScoped<IPredictionService, PredictionService>();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -38,6 +40,8 @@ using (var scope = app.Services.CreateScope())
     await context.Database.EnsureCreatedAsync();
 }
 
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.Run();
 
