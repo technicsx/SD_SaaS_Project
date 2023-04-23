@@ -7,6 +7,8 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
+#region DI
+
 services.AddSqlite<DataContext>(builder.Configuration.GetConnectionString("SQLite"));
 services.Configure<PositionStackConfig>(builder.Configuration.GetSection("PositionStack"));
 services.AddHttpClient<ILocationService, LocationService>(client =>
@@ -57,13 +59,20 @@ services.AddSwaggerGen(c =>
     });
 });
 
+#endregion
+
+
 var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+#region Routes
+
 app.MapGet("/", () => "Hello World!");
+
 var api = app.MapGroup("/api").RequireAuthorization();
+
 api.MapGet("prediction",
     async ([AsParameters] QueryParams query, ILocationService locationService, IPredictionService predictionService) =>
     {
@@ -78,6 +87,11 @@ api.MapGet("prediction",
         return await predictionService.GetPredictions(regionId, DateTime.UtcNow);
     });
 
+#endregion
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 using (var scope = app.Services.CreateScope())
 {
     var scopeServices = scope.ServiceProvider;
@@ -85,9 +99,6 @@ using (var scope = app.Services.CreateScope())
     var context = scopeServices.GetRequiredService<DataContext>();
     await context.Database.EnsureCreatedAsync();
 }
-
-app.UseSwagger();
-app.UseSwaggerUI();
 
 app.Run();
 
