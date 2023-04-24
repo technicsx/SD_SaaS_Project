@@ -78,6 +78,7 @@ var app = builder.Build();
 
 app.UseCors();
 
+app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseAuthentication();
