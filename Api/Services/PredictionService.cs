@@ -41,7 +41,7 @@ namespace Api.Services
                     return new
                     {
                         Id = id,
-                        Predictions = predictions.ToDictionary(p => $"{p.DateHour:hh:mm}", p => p.IsAlarm)
+                        Predictions = predictions.ToDictionary(p => $"{p.DateHour:HH:mm}", p => p.IsAlarm)
                     };
                 }).ToDictionary(g => _locationService.IntoRegionName(g.Id), g => g.Predictions)
             };
