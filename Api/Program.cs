@@ -11,11 +11,15 @@ var services = builder.Services;
 
 services.AddSqlite<DataContext>(builder.Configuration.GetConnectionString("SQLite"));
 services.Configure<PositionStackConfig>(builder.Configuration.GetSection("PositionStack"));
+services.AddScoped<IPredictionService, PredictionService>();
 services.AddHttpClient<ILocationService, LocationService>(client =>
 {
     client.BaseAddress = new Uri("http://api.positionstack.com/v1/", UriKind.Absolute);
 });
-services.AddScoped<IPredictionService, PredictionService>();
+services.AddHttpClient<ITrainingService, TrainingService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration.GetConnectionString("MLApi")!, UriKind.Absolute);
+});
 
 services.Configure<AuthConfig>(builder.Configuration.GetSection("Auth"));
 services.AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
@@ -101,6 +105,12 @@ api.MapGet("prediction",
 
         return await predictionService.GetAlarmInfo(regionId, DateTime.UtcNow);
     });
+
+api.MapPost("training", async (ITrainingService trainingService) =>
+{
+    await trainingService.TrainModel();
+    return Results.Ok();
+});
 
 #endregion
 

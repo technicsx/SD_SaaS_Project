@@ -9,6 +9,8 @@
     ports:
       - 80:80
       - 443:443
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:
       - ../../db_data:/app/data
       - ./wwwroot:/app/wwwroot
