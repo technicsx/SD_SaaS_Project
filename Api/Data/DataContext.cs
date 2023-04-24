@@ -9,17 +9,24 @@ namespace Api.Data
         }
 
         public DbSet<Prediction> Predictions { get; set; } = null!;
+        public DbSet<Metadata> Metadata { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Prediction>(e =>
             {
                 e.HasKey(p => new { p.RegionId, p.DateHour });
-                e.HasData(GetTestData());
+                e.HasData(GetPredictionTestData());
+            });
+
+            modelBuilder.Entity<Metadata>(e =>
+            {
+                e.HasKey(m => m.Key);
+                e.HasData(GetTestMetadata());
             });
         }
 
-        private IEnumerable<Prediction> GetTestData()
+        private static IEnumerable<Prediction> GetPredictionTestData()
         {
             var now = DateTime.UtcNow;
             var nowRounded = now.RoundToFloorHour();
@@ -37,6 +44,23 @@ namespace Api.Data
                     };
                 }
             }
+        }
+        
+        private static Metadata[] GetTestMetadata()
+        {
+            return new[]
+            {
+                new Metadata
+                {
+                    Key = nameof(AlarmInfo.LastModelTrainTime),
+                    Value = new DateTime(2023, 5, 24).ToString("s")
+                },
+                new Metadata
+                {
+                    Key = nameof(AlarmInfo.LastPredictionTime),
+                    Value = new DateTime(2023, 5, 24).ToString("s")
+                }
+            };
         }
     }
 }

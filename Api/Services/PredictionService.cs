@@ -31,11 +31,15 @@ namespace Api.Services
                 query = query.Where(p => p.RegionId == regionId);
 
             var result = await query.ToListAsync();
+            var lastModelTrainTime = await _db.Metadata
+                .FindAsync(nameof(AlarmInfo.LastModelTrainTime));
+            var lastPredictionTime =await _db.Metadata
+                .FindAsync(nameof(AlarmInfo.LastPredictionTime));
 
             return new AlarmInfo
             {
-                LastModelTrainTime = new DateTime(2023, 4, 24),
-                LastPredictionTime = DateTime.Now,
+                LastModelTrainTime = lastModelTrainTime!.Value!,
+                LastPredictionTime = lastPredictionTime!.Value!,
                 RegionsForecast = result.GroupBy(r => r.RegionId, (id, predictions) =>
                 {
                     return new
