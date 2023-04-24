@@ -8,6 +8,8 @@
       - .env
     ports:
       - 5293:80
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:
       - alarms_api_data:/app/data
 volumes:
