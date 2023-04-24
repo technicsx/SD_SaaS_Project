@@ -17,6 +17,9 @@ namespace Api.Data
             {
                 e.HasKey(p => new { p.RegionId, p.DateHour });
                 e.HasData(GetPredictionTestData());
+                e.Property(p => p.DateHour)
+                    .HasConversion(v => v, 
+                        v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             });
 
             modelBuilder.Entity<Metadata>(e =>
