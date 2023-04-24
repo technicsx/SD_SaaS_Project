@@ -7,8 +7,8 @@
     env_file:
       - .env
     ports:
-      - 5293:80
+      - 80:80
+      - 443:443
     volumes:
-      - alarms_api_data:/app/data
-volumes:
-  alarms_api_data:
+      - ../../db_data:/app/data
+      - ./wwwroot:/app/wwwroot
