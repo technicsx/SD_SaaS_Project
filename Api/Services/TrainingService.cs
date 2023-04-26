@@ -16,7 +16,7 @@ namespace Api.Services
 
         public async Task TrainModel()
         {
-            await _client.PostAsync(new Uri("/api/training"), null);
+            await _client.PostAsync(new Uri("api/training", UriKind.Relative), null);
         }
     }
 }
