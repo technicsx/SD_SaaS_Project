@@ -26,20 +26,24 @@ namespace Api.Services
 
             var query = _db.Predictions
                 .OrderBy(p => p.DateHour)
-                .Where(p => p.DateHour >= firstHour && p.DateHour < lastHour);
+                .Where(p => p.DateHour >= firstHour && p.DateHour <= lastHour);
             if (regionId.HasValue)
                 query = query.Where(p => p.RegionId == regionId);
 
             var result = await query.ToListAsync();
-            var lastModelTrainTime = await _db.Metadata
-                .FindAsync(nameof(AlarmInfo.LastModelTrainTime));
-            var lastPredictionTime =await _db.Metadata
-                .FindAsync(nameof(AlarmInfo.LastPredictionTime));
+            var lastModelTrainTime = DateTime.SpecifyKind(
+                DateTime.Parse(
+                    (await _db.Metadata.FindAsync(nameof(AlarmInfo.LastModelTrainTime)))!.Value!),
+                DateTimeKind.Utc);
+            var lastPredictionTime = DateTime.SpecifyKind(
+                DateTime.Parse(
+                    (await _db.Metadata.FindAsync(nameof(AlarmInfo.LastPredictionTime)))!.Value!),
+                DateTimeKind.Utc);
 
             return new AlarmInfo
             {
-                LastModelTrainTime = lastModelTrainTime!.Value!,
-                LastPredictionTime = lastPredictionTime!.Value!,
+                LastModelTrainTime = lastModelTrainTime.ToLocalTime(),
+                LastPredictionTime = lastPredictionTime.ToLocalTime(),
                 RegionsForecast = result.GroupBy(r => r.RegionId, (id, predictions) =>
                 {
                     return new
