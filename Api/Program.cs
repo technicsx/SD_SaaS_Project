@@ -107,7 +107,7 @@ api.MapGet("prediction",
 
 api.MapPost("update-predictions",
     ctx => ctx.HttpProxyAsync
-        (builder.Configuration.GetConnectionString("MLApi") + "/update-predictions"));
+        (builder.Configuration.GetConnectionString("MLApi") + "/api/update-predictions"));
 
 #endregion
 
