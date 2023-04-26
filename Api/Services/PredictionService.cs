@@ -26,7 +26,7 @@ namespace Api.Services
 
             var query = _db.Predictions
                 .OrderBy(p => p.DateHour)
-                .Where(p => p.DateHour >= firstHour && p.DateHour < lastHour);
+                .Where(p => p.DateHour >= firstHour && p.DateHour <= lastHour);
             if (regionId.HasValue)
                 query = query.Where(p => p.RegionId == regionId);
 
