@@ -1,6 +1,7 @@
 using Api.Data;
 using Api.Services;
 using AspNetCore.Authentication.ApiKey;
+using AspNetCore.Proxy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 
@@ -15,10 +16,6 @@ services.AddScoped<IPredictionService, PredictionService>();
 services.AddHttpClient<ILocationService, LocationService>(client =>
 {
     client.BaseAddress = new Uri("http://api.positionstack.com/v1/", UriKind.Absolute);
-});
-services.AddHttpClient<IMlService, MlService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration.GetConnectionString("MLApi")!, UriKind.Absolute);
 });
 
 services.Configure<AuthConfig>(builder.Configuration.GetSection("Auth"));
@@ -44,6 +41,7 @@ services.AddCors(options =>
         .AllowAnyHeader()
         .AllowCredentials());
 });
+services.AddProxies();
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen(c =>
@@ -106,11 +104,10 @@ api.MapGet("prediction",
         return await predictionService.GetAlarmInfo(regionId, DateTime.UtcNow);
     });
 
-api.MapPost("update-predictions", async (IMlService trainingService) =>
-{
-    var res = await trainingService.UpdatePredictions();
-    return Results.Ok(res);
-});
+
+api.MapPost("update-predictions",
+    ctx => ctx.HttpProxyAsync
+        (builder.Configuration.GetConnectionString("MLApi") + "/update-predictions"));
 
 #endregion
 
