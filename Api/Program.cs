@@ -16,7 +16,7 @@ services.AddHttpClient<ILocationService, LocationService>(client =>
 {
     client.BaseAddress = new Uri("http://api.positionstack.com/v1/", UriKind.Absolute);
 });
-services.AddHttpClient<ITrainingService, TrainingService>(client =>
+services.AddHttpClient<IMlService, MlService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration.GetConnectionString("MLApi")!, UriKind.Absolute);
 });
@@ -106,10 +106,10 @@ api.MapGet("prediction",
         return await predictionService.GetAlarmInfo(regionId, DateTime.UtcNow);
     });
 
-api.MapPost("training", async (ITrainingService trainingService) =>
+api.MapPost("update-predictions", async (IMlService trainingService) =>
 {
-    await trainingService.TrainModel();
-    return Results.Ok();
+    var res = await trainingService.UpdatePredictions();
+    return Results.Ok(res);
 });
 
 #endregion
