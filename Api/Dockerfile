@@ -15,6 +15,10 @@ FROM build AS publish
 RUN dotnet publish "Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Kyiv
+
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Api.dll"]
