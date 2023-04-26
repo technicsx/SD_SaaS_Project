@@ -1,5 +1,6 @@
 *.db*
 .env
+model-data/
 
 ### VisualStudio template
 ## Ignore Visual Studio temporary files, build results, and

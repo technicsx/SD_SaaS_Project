@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Api.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,11 +40,13 @@ namespace Api.Services
                 DateTime.Parse(
                     (await _db.Metadata.FindAsync(nameof(AlarmInfo.LastPredictionTime)))!.Value!),
                 DateTimeKind.Utc);
+            var metadata = await JsonSerializer.DeserializeAsync<Dictionary<string, object>>(File.OpenRead("model-data/.metadata"));
 
             return new AlarmInfo
             {
                 LastModelTrainTime = lastModelTrainTime.ToLocalTime(),
                 LastPredictionTime = lastPredictionTime.ToLocalTime(),
+                Metadata = metadata,
                 RegionsForecast = result.GroupBy(r => r.RegionId, (id, predictions) =>
                 {
                     return new
