@@ -42,8 +42,8 @@ namespace Api.Services
 
             return new AlarmInfo
             {
-                LastModelTrainTime = lastModelTrainTime,
-                LastPredictionTime = lastPredictionTime,
+                LastModelTrainTime = lastModelTrainTime.ToLocalTime(),
+                LastPredictionTime = lastPredictionTime.ToLocalTime(),
                 RegionsForecast = result.GroupBy(r => r.RegionId, (id, predictions) =>
                 {
                     return new
