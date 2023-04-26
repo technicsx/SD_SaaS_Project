@@ -108,6 +108,15 @@ api.MapGet("prediction",
 api.MapPost("update-predictions",
     ctx => ctx.HttpProxyAsync
         (builder.Configuration.GetConnectionString("MLApi") + "/api/update-predictions"));
+api.MapGet("models",
+    ctx => ctx.HttpProxyAsync
+        (builder.Configuration.GetConnectionString("MLApi") + "/api/models"));
+api.MapGet("models/select",
+    ctx => ctx.HttpProxyAsync
+        (builder.Configuration.GetConnectionString("MLApi") + "/api/models/select"));
+api.MapPost("models/select",
+    ctx => ctx.HttpProxyAsync
+        (builder.Configuration.GetConnectionString("MLApi") + "/api/models/select"));
 
 #endregion
 
