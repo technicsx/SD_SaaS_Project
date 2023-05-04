@@ -149,7 +149,7 @@ df_weather.head(5)
 add_lunar_eclipses(df_weather, day_datetime_column="day_datetime")
 
 # %%
-df_weather_K = pd.read_csv("../external_data/hourly_weather/all_weather_by_hour.csv", sep=",")
+df_weather_K = pd.read_csv("../../external_data/hourly_weather/all_weather_by_hour.csv", sep=",")
 df_weather_K.head(5)
 
 # %%
@@ -158,7 +158,7 @@ df_weather_K.drop(['city_latitude', 'city_longitude', 'city_timezone', 'city_tzo
 
 
 # %%
-df_regions = pd.read_csv("../external_data/additions/regions.csv", sep=",")
+df_regions = pd.read_csv("../../external_data/additions/regions.csv", sep=",")
 
 df_regions.drop(['center_city_ua', 'region_alt'], axis=1, inplace=True)
 
@@ -431,7 +431,7 @@ df_merged_weather_with_regions_with_alarms_with_isw = df_merged_weather_with_reg
 # %%
 
 # %%
-df_merged_should_be = pd.read_pickle("./results/df_fin_history.pkl")
+df_merged_should_be = pd.read_pickle("../results/df_fin_history.pkl")
 df_merged_should_be.head(5)
 
 

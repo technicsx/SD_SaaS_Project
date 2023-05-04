@@ -13,8 +13,6 @@
 # ---
 
 # %%
-
-# %%
 # !pip install jupysql
 # !pip install duckdb
 # !pip install duckdb-engine
@@ -46,7 +44,7 @@ pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 # %% cell_id="ac6a0c9dc63949df851a22bff81b8535" deepnote_cell_type="code"
-REPORTS_DATA_FILE = "./results/tfidf-history.csv"
+REPORTS_DATA_FILE = "./results/tfidf-history-new.csv"
 
 OUTPUT_FOLDER = "results"
 ISW_OUTPUT_DATA_FILE = "all_isw.csv"
@@ -64,7 +62,7 @@ def isNaN(num):
 # ## reading data
 
 # %% cell_id="25b96939f84f4b7a9973fbbf25e0fa1a" deepnote_cell_type="code"
-df_isw = pd.read_csv("./results/tfidf-history.csv", sep=",")
+df_isw = pd.read_csv("./results/tfidf-history-new.csv", sep=",")
 df_isw.head(5)
 
 # %% [markdown] cell_id="3db0ad4fc23c48b782e04ea66e73f028" deepnote_cell_type="markdown"
@@ -124,11 +122,12 @@ df_isw_v2.head(1)
 # ### Preparing alarms data
 
 # %%
-df_alarms = pd.read_csv("../external_data/alarms/alarms.csv", sep=";")
+df_alarms = pd.read_csv("../results/df_fin_alarms.csv", sep=",")
 df_alarms.head(1)
 
 # %% cell_id="ce00bb16d2e94d128d28f352bde22cbb" deepnote_cell_type="code"
-df_alarms.drop(["id", "region_id"], axis=1, inplace=True)
+df_alarms.drop(["region_id"], axis=1, inplace=True)
+# df_alarms.drop(["id", "region_id"], axis=1, inplace=True)
 df_alarms["event_time"] = np.nan
 
 # %% cell_id="43771d041c58424eb692f73230f4b791" deepnote_cell_type="code"
@@ -194,11 +193,18 @@ df_alarms_v2.head(1)
 # ### Prepare weather
 
 # %% cell_id="128e051e53694b4f92b1d765f6e5eb4b" deepnote_cell_type="code"
-df_weather = pd.read_csv("../external_data/hourly_weather/all_weather_by_hour.csv")
+df_weather = pd.read_csv("../results/history_weather.csv", sep=",")
 df_weather["day_datetime"] = pd.to_datetime(df_weather["day_datetime"])
+
+# %%
+df_weather.head(1)
 
 # %% cell_id="6ab1b03027504c218ed5e02b5944ee28" deepnote_cell_type="code"
 df_weather.shape
+
+# %%
+df_weather['day_tempmax'] = df_weather.groupby(['city_address','day_datetime'])['hour_temp'].transform('max')
+df_weather['day_tempmin'] = df_weather.groupby(['city_address','day_datetime'])['hour_temp'].transform('min')
 
 # %% cell_id="ca2c2b5a13334a78b21504402d417830" deepnote_cell_type="code"
 df_weather.head(1)
@@ -206,11 +212,11 @@ df_weather.head(1)
 # %% cell_id="f10f1491c1b44ee1ab63f17929ffff38" deepnote_cell_type="code"
 # exclude
 weather_exclude = [
-    "day_feelslikemax",
-    "day_feelslikemin",
+    # "day_feelslikemax",
+    # "day_feelslikemin",
     "day_sunriseEpoch",
     "day_sunsetEpoch",
-    "day_description",
+    # "day_description",
     "city_latitude",
     "city_longitude",
     "city_address",
@@ -232,11 +238,11 @@ weather_exclude = [
     "day_source",
     "day_preciptype",
     "day_stations",
-    "hour_icon",
-    "hour_source",
-    "hour_stations",
-    "hour_feelslike",
-    "hour_preciptype",
+    # "hour_icon",
+    # "hour_source",
+    # "hour_stations",
+    # "hour_feelslike",
+    # "hour_preciptype",
 ]
 
 # %% cell_id="02dffa78339b409eba1906019ae553fe" deepnote_cell_type="code"
@@ -260,6 +266,15 @@ df_weather.fillna(0, inplace=True)
 
 # %% cell_id="7035ab608f4f440aacd6a30d55f981d8" deepnote_cell_type="code"
 df_weather.head(5)
+
+# %%
+df_weather.head(1)
+
+# %%
+# row_to_save = df_weather.loc[1]
+#
+# # save the row to a CSV file
+# row_to_save.to_csv('./results/weather_one_row.csv"', mode='a', header=False)
 
 # %% cell_id="2a2e76b0bf174bcb98622170e00d66c4" deepnote_cell_type="code"
 df_weather.columns
@@ -370,6 +385,14 @@ print(f"No alarm: {no_alarms / df_weather_v3.size}")
 # ### Number of alarms for this region during the last 24 hours
 
 # %%
+df_weather_v3.drop(['hour_sunset', 'hour_sunrise', 'day_sunrise', 'day_sunset'], axis=1, inplace=True)
+
+
+# %%
+df_weather_v3.head(1)
+
+
+# %%
 df_weather_v4 = None
 
 # %% cell_id="3c0032ffd14144caab2b1bed8db9ab1b" deepnote_cell_type="code" language="sql"
@@ -388,6 +411,18 @@ df_weather_v4 = None
 #                             and epoch_ms(out.hour_datetimeEpoch::long * 1000)
 #                      group by out.region_id, out.hour_datetimeEpoch) as alarm_count
 #         on df.region_id = alarm_count.region_id and df.hour_datetimeEpoch = alarm_count.hour_datetimeEpoch;
+
+# %%
+value_present = (df_weather_v3 == '05:39:30').any().any()
+
+# %%
+columns_with_value = list(df_weather_v3.columns[(df_weather_v3 == '05:39:30').any()])
+
+# %%
+columns_with_value
+
+# %%
+df_weather_v3.dtypes
 
 # %% cell_id="f2996c9e0cf84c1595b02ae9db365503" deepnote_cell_type="code"
 df_weather_v4[
@@ -475,7 +510,7 @@ df_weather_v5.shape
 
 # %%
 print(df_weather_v5.shape)
-df_weather_v5.drop(['day_precipcover'], axis=1, inplace=True)
+# df_weather_v5.drop(['day_precipcover'], axis=1, inplace=True)
 df_weather_v5.head(5)
 
 # %%
@@ -575,14 +610,9 @@ scaler.fit(df_weather_v5)
 
 # transform the features using the scaler
 df_scaled = scaler.transform(df_weather_v5)
-from sklearn.preprocessing import MinMaxScaler
-
-scaler2 = MinMaxScaler()
-minmax_df = np.array(df_scaled)
-minmax_df = scaler2.fit_transform(minmax_df)
 
 # combine the scaled features and the target variable into a new dataframe
-df_weather_v5 = pd.DataFrame(minmax_df, columns=df_weather_v5.columns)
+df_weather_v5 = pd.DataFrame(df_scaled, columns=df_weather_v5.columns)
 df_weather_v5['is_alarm'] = target
 df_weather_v5['day_datetimeEpoch'] = day_datetimeEpoch
 df_weather_v5['hour_datetimeEpoch'] = hour_datetimeEpoch
@@ -756,7 +786,7 @@ df_fin.head(15)
 # ### Save final merged dataframe
 
 # %% cell_id="8b906aa46c70419b8c5a2aeb4be211e0" deepnote_cell_type="code"
-df_fin.to_pickle(f"{OUTPUT_FOLDER}/df_fin_history.pkl")
+df_fin.to_pickle(f"{OUTPUT_FOLDER}/df_fin_history_new.pkl")
 
 
 # %%
@@ -765,6 +795,95 @@ print(df_fin.dtypes.count)
 
 # %%
 df_fin.head(10)
+
+
+# %%
+df_fin = df_fin.sort_index(axis=1)
+df_fin.columns
+
+# %%
+pickle_path = '../results/df_fin_history.pkl'
+old_fn = pd.read_pickle(pickle_path)
+old_fn = old_fn.sort_index(axis=1)
+old_fn.head(1)
+
+
+# %%
+old_fn = old_fn.sort_index(axis=1)
+old_fn.columns
+
+
+# %%
+columns_1 = set(df_fin.columns)
+columns_2 = set(old_fn.columns)
+differences = list(columns_1 - columns_2)
+
+# %%
+differences
+
+# %%
+df_fin.drop(['hour_feelslikemax', 'hour_feelslikemin', 'hour_precipcover','hour_tempmax', 'hour_tempmin', 'day_tzoffset','hour_sunriseEpoch','hour_sunsetEpoch'], axis=1, inplace=True)
+df_fin.head(1)
+
+# %%
+old_fn.head(1)
+
+# %%
+['alarmed_regions_count', 'authority', 'bakhmut', 'continue',
+       'date_tomorrow_epoch', 'day_datetimeEpoch', 'day_dew', 'day_humidity',
+       'day_moonphase', 'day_of_week_Friday', 'day_of_week_Monday',
+       'day_of_week_Saturday', 'day_of_week_Sunday', 'day_of_week_Thursday',
+       'day_of_week_Tuesday', 'day_of_week_Wednesday', 'day_precip',
+       'day_solarenergy', 'day_solarradiation', 'day_temp', 'day_tzoffset',
+       'day_uvindex', 'defense', 'donetsk', 'events_last_24_hrs', 'ground',
+       'group', 'hour_cloudcover', 'hour_conditions_Clear',
+       'hour_conditions_Overcast', 'hour_conditions_Partially cloudy',
+       'hour_conditions_Rain', 'hour_conditions_Rain, Overcast',
+       'hour_conditions_Rain, Partially cloudy', 'hour_conditions_Snow',
+       'hour_conditions_Snow, Freezing Drizzle/Freezing Rain, Overcast',
+       'hour_conditions_Snow, Overcast',
+       'hour_conditions_Snow, Partially cloudy',
+       'hour_conditions_Snow, Rain, Freezing Drizzle/Freezing Rain, Overcast',
+       'hour_conditions_Snow, Rain, Overcast',
+       'hour_conditions_Snow, Rain, Partially cloudy', 'hour_datetimeEpoch',
+       'hour_dew', 'hour_feelslikemax', 'hour_feelslikemin', 'hour_humidity',
+       'hour_moonphase', 'hour_precip', 'hour_precipcover', 'hour_precipprob',
+       'hour_pressure', 'hour_severerisk', 'hour_snow', 'hour_snowdepth',
+       'hour_solarenergy', 'hour_solarradiation', 'hour_sunriseEpoch',
+       'hour_sunsetEpoch', 'hour_temp', 'hour_tempmax', 'hour_tempmin',
+       'hour_uvindex', 'hour_visibility', 'hour_winddir', 'hour_windgust',
+       'hour_windspeed', 'is_alarm', 'isw', 'kremlin', 'luhansk',
+       'lunar_eclipse', 'milblogger', 'mod', 'moonphased_eclipse',
+       'occupation', 'occupied', 'offensive', 'prigozhin', 'putin',
+       'region_id', 'ukrainian_holiday', 'wagner', 'war', 'western']
+
+
+['alarmed_regions_count', 'authority', 'bakhmut', 'continue',
+       'date_tomorrow_epoch', 'day_datetimeEpoch', 'day_dew', 'day_humidity',
+       'day_moonphase', 'day_of_week_Friday', 'day_of_week_Monday',
+       'day_of_week_Saturday', 'day_of_week_Sunday', 'day_of_week_Thursday',
+       'day_of_week_Tuesday', 'day_of_week_Wednesday', 'day_precip',
+       'day_solarenergy', 'day_solarradiation', 'day_temp', 'day_tempmax',
+       'day_tempmin', 'day_uvindex', 'defense', 'donetsk',
+       'events_last_24_hrs', 'ground', 'hour_cloudcover',
+       'hour_conditions_Clear',
+       'hour_conditions_Freezing Drizzle/Freezing Rain, Overcast',
+       'hour_conditions_Ice, Overcast', 'hour_conditions_Overcast',
+       'hour_conditions_Partially cloudy', 'hour_conditions_Rain',
+       'hour_conditions_Rain, Overcast',
+       'hour_conditions_Rain, Partially cloudy', 'hour_conditions_Snow',
+       'hour_conditions_Snow, Overcast',
+       'hour_conditions_Snow, Partially cloudy', 'hour_conditions_Snow, Rain',
+       'hour_conditions_Snow, Rain, Overcast',
+       'hour_conditions_Snow, Rain, Partially cloudy', 'hour_datetimeEpoch',
+       'hour_dew', 'hour_humidity', 'hour_precip', 'hour_precipprob',
+       'hour_pressure', 'hour_severerisk', 'hour_snow', 'hour_snowdepth',
+       'hour_solarenergy', 'hour_solarradiation', 'hour_temp', 'hour_uvindex',
+       'hour_visibility', 'hour_winddir', 'hour_windgust', 'hour_windspeed',
+       'is_alarm', 'isw', 'kharkiv', 'kherson', 'kremlin', 'luhansk',
+       'lunar_eclipse', 'mobilization', 'moonphased_eclipse', 'occupation',
+       'occupied', 'offensive', 'position', 'putin', 'region_id', 'report',
+       'troop', 'ukrainian_holiday', 'war']
 
 
 # %%

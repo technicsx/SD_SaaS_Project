@@ -124,7 +124,7 @@ df_isw_v2.head(1)
 # ### Preparing alarms data
 
 # %%
-df_alarms = pd.read_csv("../external_data/alarms/alarms.csv", sep=";")
+df_alarms = pd.read_csv("../../external_data/alarms/alarms.csv", sep=";")
 df_alarms.head(1)
 
 # %% cell_id="ce00bb16d2e94d128d28f352bde22cbb" deepnote_cell_type="code"
@@ -194,7 +194,7 @@ df_alarms_v2.head(1)
 # ### Prepare weather
 
 # %% cell_id="128e051e53694b4f92b1d765f6e5eb4b" deepnote_cell_type="code"
-df_weather = pd.read_csv("../external_data/hourly_weather/all_weather_by_hour.csv")
+df_weather = pd.read_csv("../../external_data/hourly_weather/all_weather_by_hour.csv")
 df_weather["day_datetime"] = pd.to_datetime(df_weather["day_datetime"])
 
 # %% cell_id="6ab1b03027504c218ed5e02b5944ee28" deepnote_cell_type="code"

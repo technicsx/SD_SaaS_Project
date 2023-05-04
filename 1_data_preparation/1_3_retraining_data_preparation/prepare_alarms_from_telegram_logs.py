@@ -63,7 +63,7 @@ source_log_sorted.head(1100)
 source_log_sorted = source_log_sorted.reset_index()
 
 # %%
-df_regions = pd.read_csv("../external_data/additions/regions.csv", sep=",")
+df_regions = pd.read_csv("../../external_data/additions/regions.csv", sep=",")
 
 df_regions.drop(['region_alt'], axis=1, inplace=True)
 
