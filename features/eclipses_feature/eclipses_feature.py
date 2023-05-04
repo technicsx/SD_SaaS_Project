@@ -14,7 +14,7 @@ def add_lunar_eclipses(
         day_datetime_column,
         column_name_1,
         column_name_2,
-        LUNAR_ECLIPSES_FILENAME_F,
+        '../features/eclipses_feature/csv/lunar_eclipses_flow.csv',
         [2022, 2023],
     )
 
@@ -30,7 +30,7 @@ def add_solar_eclipses(
         day_datetime_column,
         column_name_1,
         column_name_2,
-        SOLAR_ECLIPSES_FILENAME_F,
+        '../features/eclipses_feature/csv/lunar_eclipses_flow.csv',
         [2022, 2023],
     )
 
