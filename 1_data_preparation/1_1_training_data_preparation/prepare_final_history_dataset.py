@@ -13,8 +13,6 @@
 # ---
 
 # %%
-
-# %%
 # !pip install jupysql
 # !pip install duckdb
 # !pip install duckdb-engine
@@ -29,8 +27,8 @@ import os
 from datetime import timedelta
 
 
-from src.features.holidays_feature import add_ukrainian_holidays
-from src.features.eclipses_feature import add_lunar_eclipses
+from features.holidays_feature.holidays_feature import add_ukrainian_holidays
+from features.eclipses_feature.eclipses_feature import add_lunar_eclipses
 
 import duckdb
 
@@ -46,7 +44,7 @@ pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 # %% cell_id="ac6a0c9dc63949df851a22bff81b8535" deepnote_cell_type="code"
-REPORTS_DATA_FILE = "./results/tfidf-history.csv"
+REPORTS_DATA_FILE = "./results/history_isw_tf_idf.csv"
 
 OUTPUT_FOLDER = "results"
 ISW_OUTPUT_DATA_FILE = "all_isw.csv"
@@ -64,7 +62,7 @@ def isNaN(num):
 # ## reading data
 
 # %% cell_id="25b96939f84f4b7a9973fbbf25e0fa1a" deepnote_cell_type="code"
-df_isw = pd.read_csv("./results/tfidf-history.csv", sep=",")
+df_isw = pd.read_csv(REPORTS_DATA_FILE, sep=",")
 df_isw.head(5)
 
 # %% [markdown] cell_id="3db0ad4fc23c48b782e04ea66e73f028" deepnote_cell_type="markdown"
@@ -124,7 +122,7 @@ df_isw_v2.head(1)
 # ### Preparing alarms data
 
 # %%
-df_alarms = pd.read_csv("../../external_data/alarms/alarms.csv", sep=";")
+df_alarms = pd.read_csv("../external_data/alarms/alarms.csv", sep=";")
 df_alarms.head(1)
 
 # %% cell_id="ce00bb16d2e94d128d28f352bde22cbb" deepnote_cell_type="code"
@@ -194,7 +192,7 @@ df_alarms_v2.head(1)
 # ### Prepare weather
 
 # %% cell_id="128e051e53694b4f92b1d765f6e5eb4b" deepnote_cell_type="code"
-df_weather = pd.read_csv("../../external_data/hourly_weather/all_weather_by_hour.csv")
+df_weather = pd.read_csv("../external_data/hourly_weather/all_weather_by_hour.csv")
 df_weather["day_datetime"] = pd.to_datetime(df_weather["day_datetime"])
 
 # %% cell_id="6ab1b03027504c218ed5e02b5944ee28" deepnote_cell_type="code"

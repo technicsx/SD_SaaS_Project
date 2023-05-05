@@ -27,8 +27,8 @@ import os
 from datetime import timedelta
 
 
-from src.features.holidays_feature import add_ukrainian_holidays
-from src.features.eclipses_feature import add_lunar_eclipses
+from features.holidays_feature.holidays_feature import add_ukrainian_holidays
+from features.eclipses_feature.eclipses_feature import add_lunar_eclipses
 
 import duckdb
 
@@ -44,7 +44,7 @@ pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 # %% cell_id="ac6a0c9dc63949df851a22bff81b8535" deepnote_cell_type="code"
-REPORTS_DATA_FILE = "./results/tfidf-history-new.csv"
+REPORTS_DATA_FILE = "./results/new_history_isw_tf_idf.csv"
 
 OUTPUT_FOLDER = "results"
 ISW_OUTPUT_DATA_FILE = "all_isw.csv"
@@ -62,7 +62,7 @@ def isNaN(num):
 # ## reading data
 
 # %% cell_id="25b96939f84f4b7a9973fbbf25e0fa1a" deepnote_cell_type="code"
-df_isw = pd.read_csv("./results/tfidf-history-new.csv", sep=",")
+df_isw = pd.read_csv(REPORTS_DATA_FILE, sep=",")
 df_isw.head(5)
 
 # %% [markdown] cell_id="3db0ad4fc23c48b782e04ea66e73f028" deepnote_cell_type="markdown"
@@ -122,11 +122,11 @@ df_isw_v2.head(1)
 # ### Preparing alarms data
 
 # %%
-df_alarms = pd.read_csv("../results/df_fin_alarms.csv", sep=",")
+df_alarms = pd.read_csv("../../SD_SaaS_Project2/1_data_preparation/results/df_fin_alarms.csv", sep=",")
 df_alarms.head(1)
 
 # %% cell_id="ce00bb16d2e94d128d28f352bde22cbb" deepnote_cell_type="code"
-df_alarms.drop(["region_id"], axis=1, inplace=True)
+df_alarms.drop(["Unnamed: 0","region_id"], axis=1, inplace=True)
 # df_alarms.drop(["id", "region_id"], axis=1, inplace=True)
 df_alarms["event_time"] = np.nan
 
@@ -193,7 +193,7 @@ df_alarms_v2.head(1)
 # ### Prepare weather
 
 # %% cell_id="128e051e53694b4f92b1d765f6e5eb4b" deepnote_cell_type="code"
-df_weather = pd.read_csv("../results/history_weather.csv", sep=",")
+df_weather = pd.read_csv("./results/history_weather.csv", sep=",")
 df_weather["day_datetime"] = pd.to_datetime(df_weather["day_datetime"])
 
 # %%
@@ -362,8 +362,8 @@ del df_alarms_v3
 df_weather_v3 = df_weather_v2.merge(
     df_alarms_v4,
     how="left",
-    left_on=["region_alt", "hour_datetimeEpoch"],
-    right_on=["event_region_title", "event_hour_level_event_datetimeEpoch"],
+    left_on=["city", "day_datetimeEpoch"],
+    right_on=["event_region_city", "event_hour_level_event_datetimeEpoch"],
 )
 
 # %%
@@ -802,7 +802,7 @@ df_fin = df_fin.sort_index(axis=1)
 df_fin.columns
 
 # %%
-pickle_path = '../results/df_fin_history.pkl'
+pickle_path = './results/df_fin_history.pkl'
 old_fn = pd.read_pickle(pickle_path)
 old_fn = old_fn.sort_index(axis=1)
 old_fn.head(1)
@@ -823,6 +823,10 @@ differences
 
 # %%
 df_fin.drop(['hour_feelslikemax', 'hour_feelslikemin', 'hour_precipcover','hour_tempmax', 'hour_tempmin', 'day_tzoffset','hour_sunriseEpoch','hour_sunsetEpoch'], axis=1, inplace=True)
+df_fin.head(1)
+
+# %%
+df_fin.to_pickle(f"{OUTPUT_FOLDER}/df_fin_history_new.pkl")
 df_fin.head(1)
 
 # %%
