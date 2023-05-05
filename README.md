@@ -31,7 +31,7 @@ consists of visualization logic for alarms, ISWs, weather and merged dataset.
 consists of training logic for 3 models (random forest, gradient boosting and logistic regression) with supporting code for hyperparameters tuning based on prepared data.
 
 ## In order to get trained models mentioned above:
-- Setup python interpreter using poetry, see docs: https://python-poetry.org/docs/
+- Setup python interpreter in your IDEA using poetry, see docs: https://python-poetry.org/docs/
 - After that run poetry install to install all dependencies.
 - Finally, you will be able to follow mentioned folder structure with numbered naming of them, starting from 0 and ending with 3.
 - Everything can be run as python files. If needed there is possibility to use "jupytext --update --to notebook . file_path.py" command to receive easy to read notebooks with .ipynb extension and run them.
