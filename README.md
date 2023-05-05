@@ -30,7 +30,7 @@ consists of visualization logic for alarms, ISWs, weather and merged dataset.
 ### Models training: 
 consists of training logic for 3 models (random forest, gradient boosting and logistic regression) with supporting code for hyperparameters tuning based on prepared data.
 
-## In order to get trained models metioned above:
+## In order to get trained models mentioned above:
 - Setup python interpreter using poetry, see docs: https://python-poetry.org/docs/
 - After that run poetry install to install all dependencies.
 - Finally, you will be able to follow mentioned folder structure with numbered naming of them, starting from 0 and ending with 3.
