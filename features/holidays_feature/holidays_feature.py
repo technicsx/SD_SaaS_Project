@@ -10,7 +10,7 @@ def add_ukrainian_holidays(
         dataset,
         day_datetime_column,
         column_name,
-        UKRAINIAN_HOLIDAYS_FILENAME_F,
+        '../features/holidays_feature/csv/ukrainian_holidays.csv',
         [2022, 2023],
     )
 

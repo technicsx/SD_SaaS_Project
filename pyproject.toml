@@ -25,6 +25,7 @@ matplotlib = "^3.7.1"
 nltk = "^3.8.1"
 num2words = "^0.5.12"
 seaborn = "^0.12.2"
+flask = "^2.2.3"
 
 
 [build-system]

@@ -18,26 +18,31 @@
 # %% [markdown] cell_id="7133bbff0c7644cdac4b3394e5327dd8" deepnote_app_coordinates={"h": 5, "w": 12, "x": 0, "y": 31} deepnote_cell_type="text-cell-h3" formattedRanges=[] is_collapsed=false
 # ### Import and download all dependecies
 
+# %%
+# !pip install scikit-learn
+# !pip install nltk
+# !pip install pandas
+# !pip install num2words
+
 # %% cell_id="8e138bae7b244bdea0d767dd645b62d8" deepnote_app_coordinates={"h": 25, "w": 12, "x": 0, "y": 37} deepnote_app_is_output_hidden=true deepnote_cell_type="code" deepnote_to_be_reexecuted=false execution_millis=2920 execution_start=1680019070283 source_hash="ec535853"
 import pandas as pd
 import pickle
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from text_preprocessing import (do_preprocessing)
+from isw_text_preprocessing import (do_preprocessing)
 
 # %% [markdown] cell_id="3adde034474b4e01b133850f0598de42" deepnote_app_coordinates={"h": 5, "w": 12, "x": 0, "y": 117} deepnote_cell_type="text-cell-h3" formattedRanges=[] is_collapsed=false
 # ### Reading target files
 
 # %% cell_id="9b0dd02d4a1d46c9910d60f25e24d79f" deepnote_app_coordinates={"h": 13, "w": 12, "x": 0, "y": 123} deepnote_app_is_output_hidden=false deepnote_cell_type="code" deepnote_to_be_reexecuted=false execution_millis=928 execution_start=1680019073228 source_hash="2e7a14d0"
-from paths_full import *
 
 df = pd.DataFrame(columns=["Name", "Date", "Text"])
 
 df_list = []
 
 print("Reading folder contents")
-for root, dirs, files in os.walk(ISW_SCRAPPING_FOLDER):
+for root, dirs, files in os.walk('./isw_new'):
     for filename in files:
         if filename.endswith(".txt"):
             with open(os.path.join(root, filename), encoding="utf-8") as file:
@@ -116,7 +121,7 @@ filenames = df["Name"]
 dates = df["Date"]
 
 print("Create vectors")
-tfidf = TfidfVectorizer(smooth_idf=True, use_idf=True, max_features=100)
+tfidf = TfidfVectorizer(smooth_idf=True, use_idf=True, max_features=20)
 vectors = tfidf.fit_transform(df["Tokens"])
 
 feature_names = tfidf.get_feature_names_out()
@@ -135,5 +140,8 @@ res_df["Keywords"] = res_df["Keywords"].apply(
     lambda d: dict(sorted(d.items(), key=lambda item: item[1], reverse=True))
 )
 
-res_df.to_csv("results/tfidf.csv", index=False)
+res_df.to_csv("results/tfidf-history-new.csv", index=False)
 print("Successfully written to .csv")
+
+
+# %%
