@@ -5,12 +5,13 @@ import numpy as np
 import pandas as pd
 import pickle
 from matplotlib import pyplot
-from sklearn.ensemble import LogisticRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from utils.timeseries_training_testing import timeseries_training_testing
 
 output_folder = "./results"
-pickle_path = '../data_preparators/results/df_fin_history.pkl'
+pickle_path = '../../1_data_preparation/results/df_fin_history.pkl'
 df_final = pd.read_pickle(pickle_path)
 
 # %%
@@ -50,30 +51,14 @@ print("\n The best parameters across ALL searched params:\n", randm_src.best_par
 
 # %%
 # tuned regular training
-model_tuned_v1 = LogisticRegression(learning_rate=0.4361416688248827, max_depth=5,
-                                            n_estimators=589, subsample=0.6657227329092461)
+model_tuned_v1 = LogisticRegression(C=10, penalty='l1', solver='liblinear')
+
 model_tuned_v1.fit(X_train, y_train)
 
 # %%
 y_pred = model_tuned_v1.predict(X_test)
 print(confusion_matrix(y_test, y_pred))
 print(model_tuned_v1.score(X_test, y_test))
-
-# %%
-# get importance
-importance = model_tuned_v1.feature_importances_
-# summarize feature importance
-for i, v in enumerate(importance):
-    print('Feature: %0d, Score: %.5f' % (i, v))
-# plot feature importance
-pyplot.bar([x for x in range(len(importance))], importance)
-pyplot.show()
-
-# %%
-feat_importances = pd.Series(model_tuned_v1.feature_importances_, index=df_final.columns)
-feat_importances.nlargest(10).plot(kind='barh')
-pyplot.title("Top 10 important features")
-pyplot.show()
 
 # %%
 filename = '8__logistic_regression_regular__v1'
@@ -86,20 +71,11 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import TimeSeriesSplit
 
-tscv = TimeSeriesSplit(n_splits=4)
-model_tuned_v2 = LogisticRegression(learning_rate=0.26455766539870096, max_depth=9, n_estimators=537,
-                                            subsample=0.7541331375277148)
+model_tuned_v2 = LogisticRegression(C=10, penalty='l1', solver='liblinear')
 
-for train_index, val_index in tscv.split(X):
-    # Split the data into training and validation sets
-    X_train_fold, X_val_fold = X.iloc[train_index], X.iloc[val_index]
-    y_train_fold, y_val_fold = y.iloc[train_index], y.iloc[val_index]
+from utils.timeseries_training_testing import timeseries_training_testing
 
-    model_tuned_v2.fit(X_train_fold, y_train_fold)
-
-    # Evaluate the model on the validation set
-    score = model_tuned_v2.score(X_val_fold, y_val_fold)
-    print(f'Validation set score: {score:.2f}')
+timeseries_training_testing(X, y, model_tuned_v2, 4, 0, 'is_alarm')
 
 # %%
 y_pred = model_tuned_v2.predict(X_test)
@@ -107,21 +83,6 @@ print(confusion_matrix(y_test, y_pred))
 print(model_tuned_v2.score(X_test, y_test))
 
 # %%
-# get importance
-importance = model_tuned_v2.feature_importances_
-# summarize feature importance
-for i, v in enumerate(importance):
-    print('Feature: %0d, Score: %.5f' % (i, v))
-# plot feature importance
-pyplot.bar([x for x in range(len(importance))], importance)
-pyplot.show()
-
-# %%
-feat_importances = pd.Series(model_tuned_v2.feature_importances_, index=df_final.columns)
-feat_importances.nlargest(10).plot(kind='barh')
-pyplot.title("Top 10 important features")
-pyplot.show()
-
-# %%
 filename = '8__logistic_regression_timeseries__v1'
 pickle.dump(model_tuned_v2, open(f"{output_folder}/{filename}.pkl", 'wb'))
+

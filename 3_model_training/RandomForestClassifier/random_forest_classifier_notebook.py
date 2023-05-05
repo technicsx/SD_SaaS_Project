@@ -5,12 +5,13 @@ import numpy as np
 import pandas as pd
 import pickle
 from matplotlib import pyplot
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from utils.timeseries_training_testing import timeseries_training_testing
 
-output_folder = "./results"
-pickle_path = '../data_preparators/results/df_fin_history.pkl'
+output_folder = "../results"
+pickle_path = '../../1_data_preparation/results/df_fin_history.pkl'
 df_final = pd.read_pickle(pickle_path)
 
 
@@ -46,7 +47,7 @@ rf = RandomForestClassifier()
 rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 10, cv = 3, verbose=2, random_state=42, n_jobs = -1)
 # Fit the random search model
 rf_random.fit(X_train, y_train)
-#%%
+# %%
 print(" Results from Random Search ")
 print("\n The best estimator across ALL searched params:\n", rf_random.best_estimator_)
 print("\n The best score across ALL searched params:\n", rf_random.best_score_)
@@ -64,13 +65,9 @@ print(model_tuned_v1.score(X_test, y_test))
 
 # %%
 # get importance
-importance = model_tuned.feature_importances_
-# summarize feature importance
-for i, v in enumerate(importance):
-    print('Feature: %0d, Score: %.5f' % (i, v))
-# plot feature importance
-pyplot.bar([x for x in range(len(importance))], importance)
-pyplot.show()
+importance = model_tuned_v1.feature_importances_
+from utils.model_features_info_out import output_overall_features_importance_diagram
+output_overall_features_importance_diagram(importance)
 
 # %%
 feat_importances = pd.Series(model_tuned_v1.feature_importances_, index=df_final.columns)
@@ -80,7 +77,7 @@ pyplot.show()
 
 # %%
 filename = '8__random_forest_regular__v1'
-pickle.dump(model_tuned_v2, open(f"{output_folder}/{filename}.pkl", 'wb'))
+pickle.dump(model_tuned_v1, open(f"{output_folder}/{filename}.pkl", 'wb'))
 
 # %%
 # tuned timeseries training
@@ -89,20 +86,12 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import TimeSeriesSplit
 
-tscv = TimeSeriesSplit(n_splits=4)
 model_tuned_v2 = RandomForestClassifier(bootstrap=False, max_depth=90, min_samples_leaf=4,
                        min_samples_split=10, n_estimators=600)
 
-for train_index, val_index in tscv.split(X):
-    # Split the data into training and validation sets
-    X_train_fold, X_val_fold = X.iloc[train_index], X.iloc[val_index]
-    y_train_fold, y_val_fold = y.iloc[train_index], y.iloc[val_index]
+from utils.timeseries_training_testing import timeseries_training_testing
 
-    model_tuned_v2.fit(X_train_fold, y_train_fold)
-
-    # Evaluate the model on the validation set
-    score = model_tuned_v2.score(X_val_fold, y_val_fold)
-    print(f'Validation set score: {score:.2f}')
+timeseries_training_testing(X, y, model_tuned_v2, 4, 0, 'is_alarm')
 
 # %%
 y_pred = model_tuned_v2.predict(X_test)
@@ -112,12 +101,8 @@ print(model_tuned_v2.score(X_test, y_test))
 # %%
 # get importance
 importance = model_tuned.feature_importances_
-# summarize feature importance
-for i, v in enumerate(importance):
-    print('Feature: %0d, Score: %.5f' % (i, v))
-# plot feature importance
-pyplot.bar([x for x in range(len(importance))], importance)
-pyplot.show()
+from utils.model_features_info_out import output_overall_features_importance_diagram
+output_overall_features_importance_diagram(importance)
 
 # %%
 feat_importances = pd.Series(model_tuned.feature_importances_, index=df_final.columns)
@@ -128,3 +113,4 @@ pyplot.show()
 # %%
 filename = '8__random_forest_timeseries__v1'
 pickle.dump(model_tuned_v2, open(f"{output_folder}/{filename}.pkl", 'wb'))
+
